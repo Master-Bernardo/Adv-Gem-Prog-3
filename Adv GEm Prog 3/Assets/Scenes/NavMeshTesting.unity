@@ -560,7 +560,7 @@ GameObject:
   - component: {fileID: 429640041}
   m_Layer: 0
   m_Name: Unit1
-  m_TagString: Unit
+  m_TagString: PlayerUnit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -840,7 +840,7 @@ GameObject:
   - component: {fileID: 524953151}
   m_Layer: 0
   m_Name: Unit2
-  m_TagString: Unit
+  m_TagString: PlayerUnit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2173,6 +2173,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cam: {fileID: 282840813}
+  allUnitsTransform:
+  - {fileID: 429640039}
+  - {fileID: 524953156}
 --- !u!4 &1484936672
 Transform:
   m_ObjectHideFlags: 0
