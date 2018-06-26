@@ -5,7 +5,7 @@ using UnityEngine;
 public class GameManager : MonoBehaviour {
 
     public static GameManager Instance;
-
+    public Camera mainCam;
     private HashSet<Transform> player1Units;
     private HashSet<Transform> player2Units;
 
@@ -42,6 +42,11 @@ public class GameManager : MonoBehaviour {
             player1Units.Add(unit);
         else
             player2Units.Add(unit);
+    }
+
+    public Quaternion GetCameraRotation()
+    {
+        return mainCam.transform.localRotation;
     }
 
 
