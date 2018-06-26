@@ -19,12 +19,9 @@ public class GameManager : MonoBehaviour {
         {
             Instance = this;
         }
-    }
 
-    private void Start()
-    {
         player1Units = new HashSet<Transform>();
-        player1Units = new HashSet<Transform>();
+        player2Units = new HashSet<Transform>();
     }
 
 
@@ -36,17 +33,39 @@ public class GameManager : MonoBehaviour {
             return player2Units;
     }
 
+    public HashSet<Transform> GetAllUnits()
+    {
+        HashSet<Transform> allUnits = new HashSet<Transform>();
+        allUnits = player1Units;
+        allUnits.UnionWith(player2Units);
+        return allUnits;
+    }
+
     public void AddUnitToGame(Transform unit, int playerID)
     {
         if (playerID == 1)
             player1Units.Add(unit);
+            //Debug.Log(unit);
         else
             player2Units.Add(unit);
+            //Debug.Log(unit);
     }
 
     public Quaternion GetCameraRotation()
     {
         return mainCam.transform.localRotation;
+    }
+    public bool IsThisMyUnit(int playerID,Transform unit)
+    {
+        if (playerID == 1)
+        {
+            if (player1Units.Contains(unit)) return true;
+            else return false;
+        }else
+        {
+            if (player2Units.Contains(unit)) return true;
+            else return false;
+        }
     }
 
 

@@ -12,9 +12,11 @@ public class PlayerController : MonoBehaviour {
    
 
     //for rect select
-    private bool lmbDown = false;
-    private Vector3 position1;
+    //private bool lmbDown = false;
+    private Vector3 lmbPosition1;
+    private Vector3 rmbPosition1;
     private float timeLmbDown;
+    private float timeRmbDown;
 
     private void Start()
     {
@@ -24,17 +26,20 @@ public class PlayerController : MonoBehaviour {
     void Update()
     {
         //left mouse button
-        if (Input.GetMouseButtonDown(0))  
+        if (Input.GetMouseButtonDown(0))
         {
             timeLmbDown = Time.time;
-            position1 = Input.mousePosition;
-
+            lmbPosition1 = Input.mousePosition;
+        }
+        if (Input.GetMouseButtonUp(0))  
+        {
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);  // this is our mouse position ray
             RaycastHit hit;
 
             //if we hit unit
-            if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "PlayerUnit") 
+            if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "Unit") 
             {
+                UnitMovement hittedUnit = hit.collider.gameObject.GetComponent<UnitMovement>();
                 if (!Input.GetKey(KeyCode.LeftShift)) { 
                     if (selectedUnits.Count > 0 )
                     {
@@ -44,9 +49,23 @@ public class PlayerController : MonoBehaviour {
                         }
                     selectedUnits.Clear();
                      }
+                    selectedUnits.Add(hittedUnit);
                 }
+                else
+                {
+                    if (!selectedUnits.Contains(hittedUnit))
+                    {
+                        selectedUnits.Add(hittedUnit);
+                    }else
+                    {
+                        selectedUnits.Remove(hittedUnit);
+                        hittedUnit.Deselect();
 
-                selectedUnits.Add(hit.collider.gameObject.GetComponent<UnitMovement>());
+                    }
+                    
+                }
+                
+                
                 foreach(UnitMovement uMov in selectedUnits)
                 {
                     uMov.Select();
@@ -55,67 +74,105 @@ public class PlayerController : MonoBehaviour {
             }
             else
             {
-                if(selectedUnits.Count > 0)
+                if (!Input.GetKey(KeyCode.LeftShift))
                 {
-                    foreach (UnitMovement uMov in selectedUnits)
+                    if (selectedUnits.Count > 0)
                     {
-                        uMov.Deselect();
+                        foreach (UnitMovement uMov in selectedUnits)
+                        {
+                            uMov.Deselect();
+                        }
+                        selectedUnits.Clear();
                     }
-                    selectedUnits.Clear();
                 }
 
                 
             }
         }
-        else if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonUp(1) && Time.time <= timeRmbDown + 0.15)
         {
-            lmbDown = false;
+            Debug.Log("short select");
+            //lmbDown = false;
             Ray ray = cam.ScreenPointToRay(Input.mousePosition);  // this is our mouse position ray
             RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "Environment" || hit.collider.gameObject.tag == "PlayerUnit") //returns true if we hit something
+            if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "Unit") //returns true if we hit something
+            {
+                //if i hit my own unit, go there
+                if (GameManager.Instance.IsThisMyUnit(playerID, hit.collider.gameObject.transform)){ 
+                    if (selectedUnits.Count != 0)
+                    {
+                        foreach (UnitMovement uMov in selectedUnits)
+                        {
+                            if (uMov.playerID == playerID) { 
+                                uMov.SetDestination(hit.point);
+                            }
+                        }
+                    }
+                }else   //if I hit enemy Unit
+                {
+                    if (selectedUnits.Count != 0)
+                    {
+                        foreach (UnitMovement uMov in selectedUnits)
+                        {
+                            if (uMov.playerID == playerID)
+                            {
+                                uMov.Attack(hit.collider.gameObject.GetComponent<UnitMovement>());
+                            }
+                        }
+                    }
+                }
+
+            }else if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "Environment")
             {
                 if (selectedUnits.Count != 0)
                 {
                     foreach (UnitMovement uMov in selectedUnits)
                     {
-                        uMov.SetDestination(hit.point);
+                        if (uMov.playerID == playerID)
+                        {
+                            uMov.SetDestination(hit.point);
+                        }
                     }
                 }
-
             }
-        }else
+        }
+
+        if (Input.GetMouseButtonDown(1))
         {
-            lmbDown = false;
+            timeRmbDown = Time.time;
+            rmbPosition1 = Input.mousePosition;
         }
 
 
-        
-       //when we release the mouse key after holding it
+
+
+
+        //when we release the mouse key after holding it
         if (Input.GetMouseButtonUp(0) && Time.time > timeLmbDown + 0.1 )  // wird nur aufgerufen wenn länger als 0.2 sekunden gehalten wird
         {
-            Vector3 position2 = Input.mousePosition;
-            Debug.Log(position2);
-            foreach(Transform transform in GameManager.Instance.GetAllPlayerUnits(playerID))
+            Vector3 lmbPosition2 = Input.mousePosition;
+
+            foreach(Transform transform in GameManager.Instance.GetAllUnits())
             {
                 Vector3 unitScreenPosition = cam.WorldToScreenPoint(transform.position);
                 bool isInRectangle = false;
                 //wann drinn
-                if (position1.x > position2.x && position1.y>position2.y)
+                if (lmbPosition1.x > lmbPosition2.x && lmbPosition1.y>lmbPosition2.y)
                 {
-                    if (unitScreenPosition.x < position1.x && unitScreenPosition.y < position1.y && unitScreenPosition.x > position2.x && unitScreenPosition.y > position2.y) isInRectangle = true;
+                    if (unitScreenPosition.x < lmbPosition1.x && unitScreenPosition.y < lmbPosition1.y && unitScreenPosition.x > lmbPosition2.x && unitScreenPosition.y > lmbPosition2.y) isInRectangle = true;
                 }
-                else if (position1.x > position2.x && position1.y < position2.y)
+                else if (lmbPosition1.x > lmbPosition2.x && lmbPosition1.y < lmbPosition2.y)
                 {
-                    if (unitScreenPosition.x < position1.x && unitScreenPosition.y > position1.y && unitScreenPosition.x > position2.x && unitScreenPosition.y <  position2.y) isInRectangle = true;
+                    if (unitScreenPosition.x < lmbPosition1.x && unitScreenPosition.y > lmbPosition1.y && unitScreenPosition.x > lmbPosition2.x && unitScreenPosition.y <  lmbPosition2.y) isInRectangle = true;
                 }
-                else if (position1.x < position2.x && position1.y < position2.y)
+                else if (lmbPosition1.x < lmbPosition2.x && lmbPosition1.y < lmbPosition2.y)
                 {
-                    if (unitScreenPosition.x > position1.x && unitScreenPosition.y > position1.y && unitScreenPosition.x < position2.x && unitScreenPosition.y < position2.y) isInRectangle = true;
+                    if (unitScreenPosition.x > lmbPosition1.x && unitScreenPosition.y > lmbPosition1.y && unitScreenPosition.x < lmbPosition2.x && unitScreenPosition.y < lmbPosition2.y) isInRectangle = true;
                 }
                 else //(position1.x < position2.x && position1.y > position2.y)
                 {
-                    if (unitScreenPosition.x > position1.x && unitScreenPosition.y < position1.y && unitScreenPosition.x < position2.x && unitScreenPosition.y > position2.y) isInRectangle = true;
+                    if (unitScreenPosition.x > lmbPosition1.x && unitScreenPosition.y < lmbPosition1.y && unitScreenPosition.x < lmbPosition2.x && unitScreenPosition.y > lmbPosition2.y) isInRectangle = true;
                 }
 
                 UnitMovement unit = transform.gameObject.GetComponent<UnitMovement>();
@@ -129,5 +186,22 @@ public class PlayerController : MonoBehaviour {
                 }
             }
         }
-    }
+
+        if (Input.GetMouseButtonUp(1) && Time.time > timeRmbDown + 0.15)
+        {
+            Debug.Log("long select");
+            Vector3 rmbPosition2 = Input.mousePosition;
+
+            Vector3 direction = new Vector3(rmbPosition2.x - rmbPosition1.x,0f, rmbPosition2.y - rmbPosition1.y) ;
+            foreach (UnitMovement uMov in selectedUnits)
+            {
+                if (uMov.playerID == playerID)
+                {
+                    uMov.FaceDirection(direction);
+                }
+            }
+            Debug.Log(direction);
+
+        }
+    }//Update End
 }
