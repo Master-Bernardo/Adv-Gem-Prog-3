@@ -6,8 +6,13 @@ public class UnitMovement : MonoBehaviour {
     public NavMeshAgent agent;
     public GameObject selectedMarker;
 
+    public int playerID = 1;
     private bool selected = false;
 
+    private void Start()
+    {
+        GameManager.Instance.AddUnitToGame(transform, playerID);
+    }
 
     public void Select()
     {
