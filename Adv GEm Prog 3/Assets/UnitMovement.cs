@@ -48,9 +48,24 @@ public class UnitMovement : MonoBehaviour {
         agent.SetDestination(destination);
     }
 
-    //we get a collection of waypoints the last one in the collection is the end goal
-    public void SetWaypoints()
+    public void GetDamage(DamageType damageType, int damageAmount)
     {
+        currentHealth -= damageAmount;
+    }
 
+    //we get a collection of waypoints the last one in the collection is the end goal
+    public void SetWaypoints(Vector3[] waypoints)
+    {
+        int index =0;
+        agent.SetDestination(waypoints[index]);
+        //agent.SetPath?
+        //vllcht lieber coroutine
+        while (index != waypoints.Length) {
+            //agent.remainingDistance <0.5f
+            //agent.pathPending??
+            //wenn desitnation == current position oder agent.setDestination erreichtw, 
+            //dann index ++
+            //und agent.setDestination(waypoints[index])
+        }
     }
 }
