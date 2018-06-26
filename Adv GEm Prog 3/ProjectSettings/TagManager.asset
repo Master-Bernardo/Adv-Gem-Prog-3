@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Environment
   - Unit
+  - Player1Unit
+  - Player2Unit
   layers:
   - Default
   - TransparentFX

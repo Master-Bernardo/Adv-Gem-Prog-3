@@ -193,7 +193,7 @@ MonoBehaviour:
   attackRate: 1
   damage: 5
   damageType: 0
-  attackRange: 1
+  attackRange: 2
 --- !u!195 &98639240
 NavMeshAgent:
   m_ObjectHideFlags: 0
