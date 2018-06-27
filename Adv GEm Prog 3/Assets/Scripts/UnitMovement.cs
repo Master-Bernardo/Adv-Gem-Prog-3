@@ -17,8 +17,8 @@ public class UnitMovement : MonoBehaviour {
     [Space(10)]
 
     //for manuall turning via holding rmb - wil be changed
-    private bool manualTurning = false;
-    Quaternion wishRotation;
+    protected bool manualTurning = false;
+    protected Quaternion wishRotation;
 
     private void Start()
     {

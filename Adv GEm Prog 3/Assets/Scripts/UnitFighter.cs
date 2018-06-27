@@ -7,7 +7,7 @@ public class UnitFighter : UnitMovement
     [Header("Fighter Unit ")]
     //all this will not be used anymore
  
-    protected float lastMeleeAttackTime = 0f;
+    
     
     protected State state;
     protected Vector3 currentAttackingTargetTransform;
@@ -42,13 +42,13 @@ public class UnitFighter : UnitMovement
 
     protected override void Update()
     {
-        // Debug.Log(gameObject + " " + state);
         base.Update();
         if (state == State.Attacking && weapons[selectedWeapon] is MeleeWeapon)
         {
             Debug.Log("MeleeAttack");
             MeleeAttack();
-        }else if (state == State.Attacking && weapons[selectedWeapon] is MissileWeapon)
+        }
+        else if (state == State.Attacking && weapons[selectedWeapon] is MissileWeapon)
         {
             MissileAttack();
             Debug.Log("MisilleAttack");
@@ -72,10 +72,10 @@ public class UnitFighter : UnitMovement
         if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < weapon.attackRange)
         {
             agent.isStopped = true;
-            if (Time.time > lastMeleeAttackTime + weapon.attackPause)
+            if (Time.time > weapon.lastMeleeAttackTime + weapon.attackPause)
             {
                 MeleeHit(weapon.damageType,weapon.damage);
-                lastMeleeAttackTime = Time.time;
+                weapon.lastMeleeAttackTime = Time.time;
             }
         }
     }
@@ -89,14 +89,64 @@ public class UnitFighter : UnitMovement
     private void MissileAttack()
     {
         //TODO
+        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig
+
+        if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < weapon.missileRange)
+        {
+            Debug.Log("in missile range");
+            agent.isStopped = true;
+            if (Time.time > weapon.lastMisilleAttackTime + weapon.missileReloadTime)
+            {
+                //if (Aim(weapon)) { //nur wenn wir zielen können, schießen wir
+                Aim(weapon);
+                MissileShoot(weapon);
+                
+                
+                weapon.lastMisilleAttackTime = Time.time;
+            }
+        }else
+        {
+            SetDestinationAttack(currentAttackingTargetTransform);
+        }
+        
+        
     }
 
-    private void MissileShoot()
+    void Aim(MissileWeapon weapon) //returns true if aiming is finished - do this erst wen alles andere läuft
+    {
+        base.TurnToDestination(currentAttackingTargetTransform);
+        //Aim igher / rotate weapon = GetLaunchAngle();
+
+        //always use max Force?
+        //getAimVector
+        //now it should perfectly hit, so we apply a skillbased random rotator function
+        //return !manualTurning; //cause when its true, he is just turning only for now, later we also have wish Angle
+    }
+
+    //TODO Formel anwenden und Raycast - welcher sagt welcher winkel genommen wird
+    float GetLaunchAngle(float speed, float distance, float heightDifference)
+    {
+        return 0f;
+    }
+    /*
+    Vector3 GetAimVector(Vector3 start, Vector3 destination)
+    {
+        Vector3 distDelta = destination - start;
+        float distance = new Vector3(distDelta.x, 0f, distDelta.z).magnitude;
+        float heightDifference = distDelta.y;
+        float launchAngle = GetLaunchAngle(maxMisileVelocity, distance, heightDifference);
+        return transform.TransformDirection(new Vector3(0f, Mathf.Sin(launchAngle), Mathf.Cos(launchAngle)) * maxMissileVelocity);
+        //wir haben den vektor wieviel nach oben - jetzt brauchen wir das in Wold coordinates
+    }
+    */
+    private void MissileShoot(MissileWeapon weapon)
     {
         //TODO
         Debug.Log("I shot the Sherif!!");
+        Rigidbody missileRb = Instantiate(weapon.projectilePrefab, weapon.transform.position + weapon.transform.up, weapon.transform.rotation).GetComponent<Rigidbody>();
+        missileRb.AddForce(transform.forward * weapon.missileMaxForce);
     }
-
+    
 
 
     public override void SetDestination(Vector3 destination)  //set destination with rmb

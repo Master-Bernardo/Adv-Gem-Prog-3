@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 23101598411036522}
   - component: {fileID: 136221219441931338}
   - component: {fileID: 54711822066820230}
-  m_Layer: 0
+  m_Layer: 2
   m_Name: ProtoProjectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -36,8 +36,8 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1825876340892556}
-  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 1.74, z: -2.23}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 1.6083088, y: 0.188, z: -0.38106748}
   m_LocalScale: {x: 0.2, y: 0.50000024, z: 0.20000012}
   m_Children: []
   m_Father: {fileID: 0}
