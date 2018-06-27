@@ -3,6 +3,7 @@ using UnityEngine.AI;
 
 public class UnitMovement : MonoBehaviour {
 
+    [Header("Basic UnitMovement")]
     public NavMeshAgent agent;
     public GameObject selectedMarker;
     public UnitHealthbar healthbar;
@@ -13,6 +14,7 @@ public class UnitMovement : MonoBehaviour {
     public int playerID = 1;
     private bool selected = false;
     private bool moving = false;
+    [Space(10)]
 
     //for manuall turning via holding rmb - wil be changed
     private bool manualTurning = false;
