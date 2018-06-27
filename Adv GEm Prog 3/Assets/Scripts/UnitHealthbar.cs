@@ -10,6 +10,5 @@ public class UnitHealthbar : MonoBehaviour {
         transform.GetChild(0).transform.localScale = new Vector3(percent, transform.localScale.y, transform.localScale.z);
         transform.rotation = GameManager.Instance.GetCameraRotation()  * Quaternion.Euler(90,0,0);
 
-        
     }
 }

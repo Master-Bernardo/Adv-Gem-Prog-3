@@ -5,23 +5,24 @@ using UnityEngine;
 public class MeleeUnitProto : UnitMovement {
 
     public float attackRate; //the same like fireRate bot for melee - the smaller the better
-    private float lastAttackTime = 0f;
+    protected float lastAttackTime = 0f;
     public int damage; //for now always the same damage on hit
     public DamageType damageType;
     public float attackRange;
-    private State state;
-    private Vector3 currentAttackingTargetTransform;
-    private UnitMovement currentAttackingTarget;
+    protected State state;
+    protected Vector3 currentAttackingTargetTransform;
+    protected UnitMovement currentAttackingTarget;
+    protected bool meleeWeaponDrawn = true; // only if its drawn , we can attack
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
-    private enum State
+    protected enum State
     {
         Idle,
         Attacking
     }
 
-    private enum Behaviour //TODO Unit Behaviour
+    protected enum Behaviour //TODO Unit Behaviour
     {
         Standard, //agressiv nur in Überzahl, sonst defensiv, bei großer unterzahl fliehen
         Aggressive,
@@ -39,20 +40,25 @@ public class MeleeUnitProto : UnitMovement {
     {
        // Debug.Log(gameObject + " " + state);
         base.Update();
-        if(state == State.Attacking)
+        if(state == State.Attacking && meleeWeaponDrawn)
         {
-            SetDestinationAttack(currentAttackingTargetTransform);
-            if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < attackRange)
-            {
-                agent.isStopped = true;
-                if (Time.time>lastAttackTime + attackRate)
-                {
-                    MeleeHit();
-                    lastAttackTime = Time.time;
-                }
-            }
+            MeleeAttackUpdate();
         }
     }
+    public void MeleeAttackUpdate()
+    {
+        SetDestinationAttack(currentAttackingTargetTransform);
+        if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < attackRange)
+        {
+            agent.isStopped = true;
+            if (Time.time > lastAttackTime + attackRate)
+            {
+                MeleeHit();
+                lastAttackTime = Time.time;
+            }
+        }
+    } 
+
 
     public override void Attack(UnitMovement target)
     {

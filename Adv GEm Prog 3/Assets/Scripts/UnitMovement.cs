@@ -67,9 +67,14 @@ public class UnitMovement : MonoBehaviour {
     }
     public virtual void SetDestination(Vector3 destination)
     {
-        manualTurning = true;
-        wishRotation = Quaternion.LookRotation(destination-transform.position);
+        TurnToDestination(destination);
         agent.SetDestination(destination);
+    }
+
+    protected virtual void TurnToDestination(Vector3 destination)
+    {
+        manualTurning = true;
+        wishRotation = Quaternion.LookRotation(destination - transform.position);
     }
 
     public void GetDamage(DamageType damageType, int damageAmount)
