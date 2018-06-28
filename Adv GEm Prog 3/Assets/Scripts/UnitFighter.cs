@@ -45,19 +45,19 @@ public class UnitFighter : UnitMovement
         base.Update();
         if (state == State.Attacking && weapons[selectedWeapon] is MeleeWeapon)
         {
-            Debug.Log("MeleeAttack");
+            //Debug.Log("MeleeAttack");
             MeleeAttack();
         }
         else if (state == State.Attacking && weapons[selectedWeapon] is MissileWeapon)
         {
             MissileAttack();
-            Debug.Log("MisilleAttack");
+            //Debug.Log("MisilleAttack");
         }
     }
 
     public override void Attack(UnitMovement target)
     {
-        Debug.Log("Attack");
+        //Debug.Log("Attack");
         currentAttackingTargetTransform = target.gameObject.transform.position;
         currentAttackingTarget = target;
         state = State.Attacking;
@@ -93,7 +93,7 @@ public class UnitFighter : UnitMovement
 
         if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < weapon.missileRange)
         {
-            Debug.Log("in missile range");
+            //Debug.Log("in missile range");
             agent.isStopped = true;
             if (Time.time > weapon.lastMisilleAttackTime + weapon.missileReloadTime)
             {
@@ -115,8 +115,20 @@ public class UnitFighter : UnitMovement
     void Aim(MissileWeapon weapon) //returns true if aiming is finished - do this erst wen alles andere läuft
     {
         base.TurnToDestination(currentAttackingTargetTransform);
-        //Aim igher / rotate weapon = GetLaunchAngle();
+        //checked Raycast if we dont see enemy, directShoot = false
 
+        float launchAngle = GetLaunchAngle(
+            weapon.missileMaxForce,
+            Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)),
+            currentAttackingTargetTransform.y - transform.position.y,
+            true
+        );
+        Debug.Log("distance" + Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)));
+        Debug.Log("heightDifference" + (currentAttackingTargetTransform.y - transform.position.y));
+        Debug.Log("angle" + GetLaunchAngle(50,400,-200,true));
+        Debug.Log("gravity" + Physics.gravity.magnitude);
+        Debug.Log("math Pow test" + Mathf.Pow(2, 2));
+        Debug.Log("squereRoot Test" + Mathf.Sqrt(4));
         //always use max Force?
         //getAimVector
         //now it should perfectly hit, so we apply a skillbased random rotator function
@@ -124,9 +136,21 @@ public class UnitFighter : UnitMovement
     }
 
     //TODO Formel anwenden und Raycast - welcher sagt welcher winkel genommen wird
-    float GetLaunchAngle(float speed, float distance, float heightDifference)
+    //Formel von  https://gamedev.stackexchange.com/questions/53552/how-can-i-find-a-projectiles-launch-angle
+    float GetLaunchAngle(float speed, float distance, float heightDifference, bool directShoot)
     {
-        return 0f;
+        //directShoot i true dann nehmen wir die niedrigere Schussbahn, wenn false, dann eine kurvigere die mehr nach oben geht
+        float theta = 0f;
+        float gravityConstant = Physics.gravity.magnitude;
+        if (directShoot) {
+            theta = Mathf.Atan((Mathf.Pow(speed, 2) - Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance,2) + 2*heightDifference*Mathf.Pow(speed,2))))/(gravityConstant*distance)) ;
+        }
+        else
+        {
+            theta = Mathf.Atan((Mathf.Pow(speed, 2) + Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance, 2) + 2 * heightDifference * Mathf.Pow(speed, 2)))) / (gravityConstant * distance));
+
+        }
+        return (theta*180/Mathf.PI);  //change into degrees
     }
     /*
     Vector3 GetAimVector(Vector3 start, Vector3 destination)
