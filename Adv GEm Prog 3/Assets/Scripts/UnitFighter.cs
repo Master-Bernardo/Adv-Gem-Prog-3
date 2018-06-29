@@ -18,6 +18,9 @@ public class UnitFighter : UnitMovement
     public int selectedWeapon = 0;
     //if(weapons[0] is MissileWeapon) blablabla
 
+    //For unit controlls 
+    public bool directFire = true; //we can shoot in 2 angles, the units switch automaticly, but we can also do this manually
+
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
     protected enum State
@@ -98,10 +101,8 @@ public class UnitFighter : UnitMovement
             if (Time.time > weapon.lastMisilleAttackTime + weapon.missileReloadTime)
             {
                 //if (Aim(weapon)) { //nur wenn wir zielen können, schießen wir
-                Aim(weapon);
-                MissileShoot(weapon);
-                
-                
+                if (Aim(weapon))  MissileShoot(weapon);
+
                 weapon.lastMisilleAttackTime = Time.time;
             }
         }else
@@ -112,27 +113,34 @@ public class UnitFighter : UnitMovement
         
     }
 
-    void Aim(MissileWeapon weapon) //returns true if aiming is finished - do this erst wen alles andere läuft
+    bool Aim(MissileWeapon weapon) //returns true if aiming is finished - do this erst wen alles andere läuft - muss nicht perfekt geaimt sein, so ungefähr  - teste toleranz später
     {
         base.TurnToDestination(currentAttackingTargetTransform);
         //checked Raycast if we dont see enemy, directShoot = false
-
+        Vector3 distDelta = currentAttackingTargetTransform - transform.position;
         float launchAngle = GetLaunchAngle(
             weapon.missileMaxForce,
-            Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)),
-            currentAttackingTargetTransform.y - transform.position.y,
-            true
+            new Vector3(distDelta.x, 0f, distDelta.z).magnitude,          //Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)),
+            distDelta.y,                                                  //currentAttackingTargetTransform.y - transform.position.y,
+            directFire
         );
-        Debug.Log("distance" + Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)));
+
+        RotateWeapon(launchAngle,weapon);
+        Debug.Log("launch Angle: " +launchAngle);
+        
+
+
+       /*Debug.Log("distance" + Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)));
         Debug.Log("heightDifference" + (currentAttackingTargetTransform.y - transform.position.y));
-        Debug.Log("angle" + GetLaunchAngle(50,400,-200,true));
+        Debug.Log("angle" + GetLaunchAngle(50,400,-200,false));
         Debug.Log("gravity" + Physics.gravity.magnitude);
         Debug.Log("math Pow test" + Mathf.Pow(2, 2));
-        Debug.Log("squereRoot Test" + Mathf.Sqrt(4));
-        //always use max Force?
-        //getAimVector
-        //now it should perfectly hit, so we apply a skillbased random rotator function
-        //return !manualTurning; //cause when its true, he is just turning only for now, later we also have wish Angle
+        Debug.Log("squereRoot Test" + Mathf.Sqrt(4));*/
+       //always use max Force?
+       //getAimVector
+       //now it should perfectly hit, so we apply a skillbased random rotator function
+       //return !manualTurning; //cause when its true, he is just turning only for now, later we also have wish Angle
+        return true;
     }
 
     //TODO Formel anwenden und Raycast - welcher sagt welcher winkel genommen wird
@@ -147,28 +155,55 @@ public class UnitFighter : UnitMovement
         }
         else
         {
+            distance = distance - 1; // to correct it, its always a bit too far idkw
             theta = Mathf.Atan((Mathf.Pow(speed, 2) + Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance, 2) + 2 * heightDifference * Mathf.Pow(speed, 2)))) / (gravityConstant * distance));
 
         }
+        
         return (theta*180/Mathf.PI);  //change into degrees
     }
-    /*
-    Vector3 GetAimVector(Vector3 start, Vector3 destination)
+    
+    private void RotateWeapon(float launchAngle,MissileWeapon weapon)
     {
-        Vector3 distDelta = destination - start;
-        float distance = new Vector3(distDelta.x, 0f, distDelta.z).magnitude;
-        float heightDifference = distDelta.y;
-        float launchAngle = GetLaunchAngle(maxMisileVelocity, distance, heightDifference);
-        return transform.TransformDirection(new Vector3(0f, Mathf.Sin(launchAngle), Mathf.Cos(launchAngle)) * maxMissileVelocity);
-        //wir haben den vektor wieviel nach oben - jetzt brauchen wir das in Wold coordinates
+        launchAngle = -launchAngle; //cause localTransform goes in the other direction
+        float yTilt; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c
+        //b =abstand weapon-target
+        //c = abstand fighter-target
+        float b = (weapon.transform.position  - currentAttackingTargetTransform).magnitude; //y vielleich auslassen  w
+        float c = (transform.position - currentAttackingTargetTransform).magnitude;
+        yTilt = Mathf.Acos(b / c);
+        /*Debug.Log("b" + b);
+        Debug.Log("c" + c);
+        Debug.Log("y Tilt: " + yTilt);
+        Debug.Log("transform.rotation.y: " + transform.rotation.y);
+        Debug.Log("transform.rotation.y - yTilt: " + (transform.rotation.y-yTilt));
+        */
+        weapon.transform.localRotation = Quaternion.Euler(transform.rotation.x  + launchAngle, transform.rotation.y -yTilt , transform.rotation.z);
     }
-    */
+
+    //private void RotateWeapon(Vector3 launchVector)
+    //{
+        //rotates the weapon with a speed (later)
+       // Vector3 desiredWeaponRotationEulerAngles = new Vector3(0f, 0f, 0f); //90 - launchAngle
+       // weapons[selectedWeapon].transform.rotation = Quaternion.Euler(launchVector);
+
+        //
+        //wir haben den vektor wieviel nach oben - jetzt brauchen wir das in Wold coordinates
+    //}
+
+    /*private void RotateWeapon(float launchAngle, MissileWeapon weapon)
+    {
+         weapon.transform.TransformDirection(new Vector3(0f, Mathf.Sin(launchAngle), Mathf.Cos(launchAngle)) * weapon.missileMaxForce);
+
+    }*/
+
     private void MissileShoot(MissileWeapon weapon)
     {
         //TODO
         Debug.Log("I shot the Sherif!!");
-        Rigidbody missileRb = Instantiate(weapon.projectilePrefab, weapon.transform.position + weapon.transform.up, weapon.transform.rotation).GetComponent<Rigidbody>();
-        missileRb.AddForce(transform.forward * weapon.missileMaxForce);
+        Rigidbody missileRb = Instantiate(weapon.projectilePrefab, weapon.transform.position + weapon.transform.forward, weapon.transform.rotation).GetComponent<Rigidbody>();
+        //missileRb.AddForce(weapon.transform.forward * weapon.missileMaxForce);
+        missileRb.velocity = weapon.transform.forward * weapon.missileMaxForce;
     }
     
 
