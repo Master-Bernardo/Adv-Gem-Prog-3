@@ -125,7 +125,15 @@ public class UnitFighter : UnitMovement
             directFire
         );
 
+        if (float.IsNaN(launchAngle))
+        {
+            Debug.Log("Too far from Target");
+            launchAngle = 0;
+            //TODO dont shoot anymore, get nearer to target
+        }
+
         RotateWeapon(launchAngle,weapon);
+        
         Debug.Log("launch Angle: " +launchAngle);
         
 
@@ -166,12 +174,12 @@ public class UnitFighter : UnitMovement
     private void RotateWeapon(float launchAngle,MissileWeapon weapon)
     {
         launchAngle = -launchAngle; //cause localTransform goes in the other direction
-        float yTilt; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c
+        float yTilt = 0f; ; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c
         //b =abstand weapon-target
         //c = abstand fighter-target
         float b = (weapon.transform.position  - currentAttackingTargetTransform).magnitude; //y vielleich auslassen  w
         float c = (transform.position - currentAttackingTargetTransform).magnitude;
-        yTilt = Mathf.Acos(b / c);
+        if(b<c) yTilt = Mathf.Acos(b / c);  // sonst gibts fehler beim rotieren, wenn wir nicht auf den Gegner gucken
         /*Debug.Log("b" + b);
         Debug.Log("c" + c);
         Debug.Log("y Tilt: " + yTilt);
