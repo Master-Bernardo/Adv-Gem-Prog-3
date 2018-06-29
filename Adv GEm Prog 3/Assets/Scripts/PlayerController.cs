@@ -124,7 +124,7 @@ public class PlayerController : MonoBehaviour {
     //attacks enemy units or sets destination if clicked on gorund or allied unit
     private void HandleRmbUp()
     {
-        Debug.Log("short select");
+        //Debug.Log("short select");
         //lmbDown = false;
         Ray ray = cam.ScreenPointToRay(Input.mousePosition);  // this is our mouse position ray
         RaycastHit hit;
@@ -134,7 +134,7 @@ public class PlayerController : MonoBehaviour {
             //if i hit my own unit, go there
             if (hit.collider.gameObject.GetComponent<UnitMovement>().getPlayerID() == 1)
             {
-                Debug.Log("hittetMyUnit");
+                //Debug.Log("hittetMyUnit");
                 if (selectedUnits.Count != 0)
                 {
                     foreach (UnitMovement uMov in selectedUnits)
@@ -142,14 +142,14 @@ public class PlayerController : MonoBehaviour {
                         if (uMov.playerID == playerID)
                         {
                             uMov.SetDestination(hit.point);
-                            Debug.Log("hittetMyUnitSetDestination");
+                            //Debug.Log("hittetMyUnitSetDestination");
                         }
                     }
                 }
             }
             else if (hit.collider.gameObject.GetComponent<UnitMovement>().getPlayerID() == 2)
             {
-                Debug.Log("hittetEnemyUnit");
+                //Debug.Log("hittetEnemyUnit");
                 if (selectedUnits.Count != 0)
                 {
                     foreach (UnitMovement uMov in selectedUnits)
@@ -221,7 +221,7 @@ public class PlayerController : MonoBehaviour {
     //we can draw a line, if our selected unit is not moving, it will face in the direction of that line, will be made better in the future - TW style positioning
     private void HandleLongRmbUp()
     {
-        Debug.Log("long -> positioning");
+        //Debug.Log("long -> positioning");
         Vector3 rmbPosition2 = Input.mousePosition;
 
         Vector3 direction = new Vector3(rmbPosition2.x - rmbPosition1.x, 0f, rmbPosition2.y - rmbPosition1.y);
@@ -232,6 +232,6 @@ public class PlayerController : MonoBehaviour {
                 uMov.FaceDirection(direction);
             }
         }
-        Debug.Log(direction);
+        //Debug.Log(direction);
     }
 }

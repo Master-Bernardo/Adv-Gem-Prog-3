@@ -9,4 +9,14 @@ public abstract class Weapon : MonoBehaviour {
     public int damage;
     //later min nad max Damage
 
+    void DrawWeapon()
+    {
+
+    }
+
+    void HideWeapon()
+    {
+
+    }
+
 }
