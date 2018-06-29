@@ -5,10 +5,7 @@ using UnityEngine;
 public class UnitFighter : UnitMovement
 {
     [Header("Fighter Unit ")]
-    //all this will not be used anymore
- 
-    
-    
+
     protected State state;
     protected Vector3 currentAttackingTargetTransform;
     protected UnitMovement currentAttackingTarget;
@@ -20,8 +17,11 @@ public class UnitFighter : UnitMovement
 
     //For unit controlls missile
     public bool directFire = true; //we can shoot in 2 angles, the units switch automaticly, but we can also do this manually
-    private float aimTolerance; //wie groß kann der winkelfehler Sein bevor man sagt, man hat fertiggeaimt
-    public bool aimed = false;
+    [Tooltip("wie groß kann der winkelfehler Sein bevor man sagt, man hat fertiggeaimt")]
+    private float aimTolerance;
+    [Tooltip("is true falls der Krieger fertiggezielt hat")]
+    [SerializeField()]
+    private bool aimed = false;
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
@@ -50,13 +50,11 @@ public class UnitFighter : UnitMovement
         base.Update();
         if (state == State.Attacking && weapons[selectedWeapon] is MeleeWeapon)
         {
-            //Debug.Log("MeleeAttack");
             MeleeAttack();
         }
         else if (state == State.Attacking && weapons[selectedWeapon] is MissileWeapon)
         {
             MissileAttack();
-            //Debug.Log("MisilleAttack");
         }
 
         //automaticly Load when we stay in a position 
@@ -71,7 +69,6 @@ public class UnitFighter : UnitMovement
 
     public override void Attack(UnitMovement target)
     {
-        //Debug.Log("Attack");
         currentAttackingTargetTransform = target.gameObject.transform.position;
         currentAttackingTarget = target;
         state = State.Attacking;
@@ -102,38 +99,30 @@ public class UnitFighter : UnitMovement
 
     private void MissileAttack()
     {
-        //TODO
         MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig
-        //if (state == State.Attacking && weapons[selectedWeapon] is MeleeWeapon)
-        //wenn laudable - dann lade hier falls nicht geladen ist
-        if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable ) //wir laden schon bevor wir in Range sind
+
+        //wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
+        if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable ) 
         {
-                
-            //LoadableMissileWeapon loadableWeapon = weapon as LoadableMissileWeapon;
             if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("LoadWeapon");
         }
 
-        if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < weapon.missileRange)
+        if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < weapon.missileRange) // wenn wir im Range sind
         {
-            //Debug.Log("in missile range");
             agent.isStopped = true;
             aimed = (Aim(weapon));
 
-            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable) //wir laden schon bevor wir in Range sind
+            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable) //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
             {
-                //DrawableMissileWeapon drawableWeapon = weapon as DrawableMissileWeapon;
                 if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("WeaponSpannen");
             }
 
-            //if (Time.time > weapon.lastMisilleAttackTime + weapon.missileReloadTime) //kann das weg durch lod und Draw Time?
-            //{
             if (aimed && weapon.weaponReadyToShoot)
             {
                 MissileShoot(weapon);
                 weapon.weaponReadyToShoot = false; //nach dem Schuss müssen wir nochmal laden oder bogen spannen
             }
-                //weapon.lastMisilleAttackTime = Time.time;
-            //}
+               
         }else
         {
             SetDestinationAttack(currentAttackingTargetTransform);
@@ -142,11 +131,11 @@ public class UnitFighter : UnitMovement
         
     }
 
-    bool Aim(MissileWeapon weapon) //returns true if aiming is finished - do this erst wen alles andere läuft - muss nicht perfekt geaimt sein, so ungefähr  - teste toleranz später
+    bool Aim(MissileWeapon weapon) //returns true if aiming is finished -
     {
-        bool _aimed = false; //is true if we have aimed in a tolerance
+        bool _aimed = false; 
         base.TurnToDestination(currentAttackingTargetTransform);
-        //checked Raycast if we dont see enemy, directShoot = false
+        //checked Raycast if we dont see enemy, directShoot = false  //maybe add later //TODO
         Vector3 distDelta = currentAttackingTargetTransform - transform.position;
         float launchAngle = GetLaunchAngle(
             weapon.missileLaunchVelocity,
@@ -157,10 +146,9 @@ public class UnitFighter : UnitMovement
 
         if (float.IsNaN(launchAngle))
         {
-            Debug.Log("Too far from Target");
+            Debug.Log("Too far from Target - NaN");
             launchAngle = 0;
-            //TODO dont shoot anymore, get nearer to target
-            //_aimed = false;
+            //TODO dont shoot anymore, get nearer to target, but should not happen
         }
 
         if(RotateWeapon(launchAngle,weapon)) _aimed = true;
@@ -170,11 +158,7 @@ public class UnitFighter : UnitMovement
             _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 5 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
         }
            
-        
-        //Debug.Log("launch Angle: " +launchAngle);
-        
-
-
+        //DebuggingBLock:
        /*Debug.Log("distance" + Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)));
         Debug.Log("heightDifference" + (currentAttackingTargetTransform.y - transform.position.y));
         Debug.Log("angle" + GetLaunchAngle(50,400,-200,false));
@@ -183,19 +167,19 @@ public class UnitFighter : UnitMovement
         Debug.Log("squereRoot Test" + Mathf.Sqrt(4));*/
        //always use max Force?
        //getAimVector
-       //now it should perfectly hit, so we apply a skillbased random rotator function
-       //return !manualTurning; //cause when its true, he is just turning only for now, later we also have wish Angle
+
+       //TODO now it should perfectly hit, so we apply a skillbased random rotator function
+      
         return _aimed;
     }
 
-    //TODO Formel anwenden und Raycast - welcher sagt welcher winkel genommen wird
     //Formel von  https://gamedev.stackexchange.com/questions/53552/how-can-i-find-a-projectiles-launch-angle
     float GetLaunchAngle(float speed, float distance, float heightDifference, bool directShoot)
     {
         //directShoot i true dann nehmen wir die niedrigere Schussbahn, wenn false, dann eine kurvigere die mehr nach oben geht
         float theta = 0f;
         float gravityConstant = Physics.gravity.magnitude;
-        distance = distance - 1; // to correct it, its always a bit too far idkw
+        distance = distance - 1.5f; // to correct it, its always a bit too far idkw
         if (directShoot) {
             theta = Mathf.Atan((Mathf.Pow(speed, 2) - Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance,2) + 2*heightDifference*Mathf.Pow(speed,2))))/(gravityConstant*distance)) ;
         }
@@ -211,42 +195,21 @@ public class UnitFighter : UnitMovement
     {
         launchAngle = -launchAngle; //cause localTransform goes in the other direction
         float yTilt = 0f; ; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c
-        //b =abstand weapon-target
-        //c = abstand fighter-target
+       
         float b = (weapon.transform.position  - currentAttackingTargetTransform).magnitude; //y vielleich auslassen  w
         float c = (transform.position - currentAttackingTargetTransform).magnitude;
         if(b<c) yTilt = Mathf.Acos(b / c);  // sonst gibts fehler beim rotieren, wenn wir nicht auf den Gegner gucken
-        /*Debug.Log("b" + b);
-        Debug.Log("c" + c);
-        Debug.Log("y Tilt: " + yTilt);
-        Debug.Log("transform.rotation.y: " + transform.rotation.y);
-        Debug.Log("transform.rotation.y - yTilt: " + (transform.rotation.y-yTilt));
-        */
+        
         Quaternion wishedRotation = Quaternion.Euler(transform.rotation.x  + launchAngle, transform.rotation.y -yTilt , transform.rotation.z);
         weapon.transform.localRotation = Quaternion.RotateTowards(weapon.transform.localRotation, wishedRotation, Time.deltaTime*weapon.aimSpeed);
         if (weapon.transform.localRotation == wishedRotation) return true;
         return false;
     }
-
-    //private void RotateWeapon(Vector3 launchVector)
-    //{
-        //rotates the weapon with a speed (later)
-       // Vector3 desiredWeaponRotationEulerAngles = new Vector3(0f, 0f, 0f); //90 - launchAngle
-       // weapons[selectedWeapon].transform.rotation = Quaternion.Euler(launchVector);
-
-        //
-        //wir haben den vektor wieviel nach oben - jetzt brauchen wir das in Wold coordinates
-    //}
-
-    /*private void RotateWeapon(float launchAngle, MissileWeapon weapon)
-    {
-         weapon.transform.TransformDirection(new Vector3(0f, Mathf.Sin(launchAngle), Mathf.Cos(launchAngle)) * weapon.missileMaxForce);
-
-    }*/
+    
 
     private void MissileShoot(MissileWeapon weapon)
     {
-        //TODO
+        //TODO dies in die weapon auslagern
         Debug.Log("I shot the Sherif!!");
         Rigidbody missileRb = Instantiate(weapon.projectilePrefab, weapon.transform.position + weapon.transform.forward, weapon.transform.rotation).GetComponent<Rigidbody>();
         //missileRb.AddForce(weapon.transform.forward * weapon.missileMaxForce);

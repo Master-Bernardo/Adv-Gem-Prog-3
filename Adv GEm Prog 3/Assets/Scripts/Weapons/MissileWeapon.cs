@@ -5,14 +5,21 @@ using UnityEngine;
 public class MissileWeapon : Weapon {
 
     [Header("Missile Weapon")]
-    public float missileReloadTime; //either draw time for a bow or load time for a crossbow or gun
-    public float missileLaunchVelocity; //launchVelocity in m/s
-    public float missileRange = 0; //is dependent on missile weight and max force, leave empthy for now
+    [Tooltip("either draw time for a bow or load time for a crossbow or gun")]
+    public float missileReloadTime;
+    [Tooltip("launchVelocity in m/s")]
+    public float missileLaunchVelocity;
+    [Tooltip("Gets calculatet automaticly, based on velocity dont write anything in here")]
+    public float missileRange = 0; 
     public GameObject projectilePrefab;
-    //public float lastMisilleAttackTime = 0f;
+    [Tooltip("how fast does our warrior aim - 500 is quite good")]
     public float aimSpeed = 20;
-    public bool weaponReadyToShoot = false; // is the missile weapon loaded or drawn correctly(bow)
-    public bool isPreparingWeapon = false; //isLoading or is Drawing
+    [Tooltip("dont touch, is weapon loaded - or is the bow drawn and ready to release?")]
+    public bool weaponReadyToShoot = false; 
+    [Tooltip("dont touch, are we loading our weapon or currently drawing our bow?")]
+    public bool isPreparingWeapon = false;
+
+    [Tooltip("drawable for bow or throwing axes, loadable for crossbws or guns")]
     public MissileWeaponType missileWeaponType;
 
     public enum MissileWeaponType
