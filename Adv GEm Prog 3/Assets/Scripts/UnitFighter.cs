@@ -121,8 +121,9 @@ public class UnitFighter : UnitMovement
 
             if (aimed && weapon.weaponReadyToShoot)
             {
-                MissileShoot(weapon);
-                weapon.weaponReadyToShoot = false; //nach dem Schuss müssen wir nochmal laden oder bogen spannen
+                if (weapon.AmmoLeft()) weapon.Shoot();
+                else Debug.Log("no Ammo left");
+
             }
                
         }else
@@ -144,7 +145,7 @@ public class UnitFighter : UnitMovement
         AimAtPredicted:
 
 
-        Vector3 distDelta = currentAttackingTargetTransform - transform.position;
+        Vector3 distDelta = currentAttackingTargetTransform - weapon.launchPoint.transform.position;
         float launchAngle = GetLaunchAngle(
             weapon.missileLaunchVelocity,
             new Vector3(distDelta.x, 0f, distDelta.z).magnitude,          //Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)),
@@ -159,23 +160,22 @@ public class UnitFighter : UnitMovement
             //TODO dont shoot anymore, get nearer to target, but should not happen
         }
 
+
         if(RotateWeapon(launchAngle,weapon)) _aimed = true;  //wenn wir zuende mir der Waffe gezielt haben
 
-        
+
 
         //now calculate how long this would take
-
+        //if(launchAngle<0) change the time in Air calculation - https://sciencing.com/solve-time-flight-projectile-problem-2683.html
         //time of flight in seconds = 2*initiallvelocity*sin(launchAngle)/gravitymagnitude
         float timeInAir = (2 * weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180))) / Physics.gravity.magnitude; //Mathf.sins takes angle in radians
-        //Debug.Log("launchAngle: " + launchAngle);
+        Debug.Log("launchAngle: " + launchAngle);
         Debug.Log("time in air: " + timeInAir);
         //Debug.Log(currentAttackingTarget.agent.velocity);
 
         //change the currentAttackingTargetTransform based on this time , take his velocity times this time  //predict his future location
         if (!predictedFutureLocation) {
-            Debug.Log("currentAttackingTargetTransform: "+ currentAttackingTargetTransform);
-            currentAttackingTargetTransform += currentAttackingTarget.agent.velocity * timeInAir;
-            Debug.Log("PredictedcurrentAttackingTargetTransform: " + currentAttackingTargetTransform);
+            currentAttackingTargetTransform += currentAttackingTarget.agent.velocity * (timeInAir);
             predictedFutureLocation = true;
             goto AimAtPredicted;
         }else
@@ -184,7 +184,7 @@ public class UnitFighter : UnitMovement
 
             if (Quaternion.Angle(transform.rotation, wishRotation) > 1)  //1 dann zielt er etwas länger aber genauer
             {
-                _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 5 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
+                _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 1 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
             }
         }
 
@@ -215,8 +215,10 @@ public class UnitFighter : UnitMovement
         //directShoot i true dann nehmen wir die niedrigere Schussbahn, wenn false, dann eine kurvigere die mehr nach oben geht
         float theta = 0f;
         float gravityConstant = Physics.gravity.magnitude;
-        distance = distance - 1.5f; // to correct it, its always a bit too far idkw 
+     
         if (directShoot) {
+            Debug.Log("distance: " + distance);
+            Debug.Log("distanceY: " + heightDifference);
             theta = Mathf.Atan((Mathf.Pow(speed, 2) - Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance,2) + 2*heightDifference*Mathf.Pow(speed,2))))/(gravityConstant*distance)) ;
         }
         else
@@ -230,27 +232,18 @@ public class UnitFighter : UnitMovement
     private bool RotateWeapon(float launchAngle,MissileWeapon weapon)
     {
         launchAngle = -launchAngle; //cause localTransform goes in the other direction
-        float yTilt = 0f; ; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c
+        float yTilt = 0f; ; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c, now theres a etter way
        
-        float b = (weapon.transform.position  - currentAttackingTargetTransform).magnitude; //y vielleich auslassen  w
-        float c = (transform.position - currentAttackingTargetTransform).magnitude;
-        if(b<c) yTilt = Mathf.Acos(b / c);  // sonst gibts fehler beim rotieren, wenn wir nicht auf den Gegner gucken
-        
-        Quaternion wishedRotation = Quaternion.Euler(transform.rotation.x  + launchAngle, transform.rotation.y -yTilt , transform.rotation.z);
+        Quaternion angleOfWeapon = Quaternion.LookRotation((currentAttackingTargetTransform - weapon.transform.position));
+        Quaternion angleOfUnit = Quaternion.LookRotation((currentAttackingTargetTransform - transform.position));
+        yTilt = Quaternion.Angle(angleOfWeapon, angleOfUnit);
+       
+        Quaternion wishedRotation = Quaternion.Euler(transform.rotation.eulerAngles.x  + launchAngle, transform.rotation.eulerAngles.x - yTilt, transform.rotation.eulerAngles.z);
         weapon.transform.localRotation = Quaternion.RotateTowards(weapon.transform.localRotation, wishedRotation, Time.deltaTime*weapon.aimSpeed);
         if (weapon.transform.localRotation == wishedRotation) return true;
         return false;
     }
     
-
-    private void MissileShoot(MissileWeapon weapon)
-    {
-        //TODO dies in die weapon auslagern
-        Debug.Log("I shot the Sherif!!");
-        Rigidbody missileRb = Instantiate(weapon.projectilePrefab, weapon.transform.position + weapon.transform.forward, weapon.transform.rotation).GetComponent<Rigidbody>();
-        //missileRb.AddForce(weapon.transform.forward * weapon.missileMaxForce);
-        missileRb.velocity = weapon.transform.forward * weapon.missileLaunchVelocity;
-    }
     
 
 

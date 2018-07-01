@@ -40,6 +40,7 @@ GameObject:
   - component: {fileID: 135444929321445794}
   - component: {fileID: 33884721438615372}
   - component: {fileID: 23320520013481056}
+  - component: {fileID: 114493329074827248}
   m_Layer: 2
   m_Name: ProtoProjectile
   m_TagString: Untagged
@@ -54,7 +55,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1825876340892556}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.46, y: 0.79, z: 1.59}
+  m_LocalPosition: {x: 7.182553, y: -0.301, z: -6.9934144}
   m_LocalScale: {x: 0.13780391, y: 0.13780394, z: 0.13780394}
   m_Children:
   - {fileID: 4841386347514938}
@@ -173,6 +174,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &114493329074827248
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1825876340892556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57772b4a5e0f7c9488030b982395d99f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!135 &135444929321445794
 SphereCollider:
   m_ObjectHideFlags: 1

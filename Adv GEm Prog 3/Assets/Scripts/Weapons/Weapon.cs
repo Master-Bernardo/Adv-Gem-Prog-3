@@ -5,8 +5,8 @@ using UnityEngine;
 public abstract class Weapon : MonoBehaviour {
 
     [Header("Basic Weapon")]
-    public DamageType damageType;
     public int damage;
+    public GameObject model; //grafic Model of the weapon
     //later min nad max Damage
 
     void DrawWeapon()
