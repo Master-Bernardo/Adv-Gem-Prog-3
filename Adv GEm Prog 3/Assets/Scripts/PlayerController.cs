@@ -168,10 +168,10 @@ public class PlayerController : MonoBehaviour {
             {
                 foreach (UnitMovement uMov in selectedUnits)
                 {
-                    if (uMov.playerID == playerID)
-                    {
+                    //if (uMov.playerID == playerID) TODO wieder einkommentieren
+                    //{
                         uMov.SetDestination(hit.point);
-                    }
+                    //}
                 }
             }
         }

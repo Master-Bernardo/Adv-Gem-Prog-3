@@ -48,6 +48,9 @@ public class UnitFighter : UnitMovement
     protected override void Update()
     {
         base.Update();
+
+        if(state==State.Attacking) currentAttackingTargetTransform = currentAttackingTarget.gameObject.transform.position;
+
         if (state == State.Attacking && weapons[selectedWeapon] is MeleeWeapon)
         {
             MeleeAttack();
@@ -69,7 +72,6 @@ public class UnitFighter : UnitMovement
 
     public override void Attack(UnitMovement target)
     {
-        currentAttackingTargetTransform = target.gameObject.transform.position;
         currentAttackingTarget = target;
         state = State.Attacking;
     }
@@ -133,9 +135,15 @@ public class UnitFighter : UnitMovement
 
     bool Aim(MissileWeapon weapon) //returns true if aiming is finished -
     {
-        bool _aimed = false; 
-        base.TurnToDestination(currentAttackingTargetTransform);
+        bool predictedFutureLocation = false;
+        bool _aimed = false;
+        
         //checked Raycast if we dont see enemy, directShoot = false  //maybe add later //TODO
+
+        //goto here
+        AimAtPredicted:
+
+
         Vector3 distDelta = currentAttackingTargetTransform - transform.position;
         float launchAngle = GetLaunchAngle(
             weapon.missileLaunchVelocity,
@@ -151,25 +159,53 @@ public class UnitFighter : UnitMovement
             //TODO dont shoot anymore, get nearer to target, but should not happen
         }
 
-        if(RotateWeapon(launchAngle,weapon)) _aimed = true;
+        if(RotateWeapon(launchAngle,weapon)) _aimed = true;  //wenn wir zuende mir der Waffe gezielt haben
 
-        if (Quaternion.Angle(transform.rotation, wishRotation)>5)
+        
+
+        //now calculate how long this would take
+
+        //time of flight in seconds = 2*initiallvelocity*sin(launchAngle)/gravitymagnitude
+        float timeInAir = (2 * weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180))) / Physics.gravity.magnitude; //Mathf.sins takes angle in radians
+        //Debug.Log("launchAngle: " + launchAngle);
+        Debug.Log("time in air: " + timeInAir);
+        //Debug.Log(currentAttackingTarget.agent.velocity);
+
+        //change the currentAttackingTargetTransform based on this time , take his velocity times this time  //predict his future location
+        if (!predictedFutureLocation) {
+            Debug.Log("currentAttackingTargetTransform: "+ currentAttackingTargetTransform);
+            currentAttackingTargetTransform += currentAttackingTarget.agent.velocity * timeInAir;
+            Debug.Log("PredictedcurrentAttackingTargetTransform: " + currentAttackingTargetTransform);
+            predictedFutureLocation = true;
+            goto AimAtPredicted;
+        }else
         {
-            _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 5 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
-        }
-           
-        //DebuggingBLock:
-       /*Debug.Log("distance" + Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)));
-        Debug.Log("heightDifference" + (currentAttackingTargetTransform.y - transform.position.y));
-        Debug.Log("angle" + GetLaunchAngle(50,400,-200,false));
-        Debug.Log("gravity" + Physics.gravity.magnitude);
-        Debug.Log("math Pow test" + Mathf.Pow(2, 2));
-        Debug.Log("squereRoot Test" + Mathf.Sqrt(4));*/
-       //always use max Force?
-       //getAimVector
+            base.TurnToDestination(currentAttackingTargetTransform);
 
-       //TODO now it should perfectly hit, so we apply a skillbased random rotator function
-      
+            if (Quaternion.Angle(transform.rotation, wishRotation) > 1)  //1 dann zielt er etwas länger aber genauer
+            {
+                _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 5 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
+            }
+        }
+
+
+
+        //DebuggingBLock:
+        /*Debug.Log("distance" + Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)));
+         Debug.Log("heightDifference" + (currentAttackingTargetTransform.y - transform.position.y));
+         Debug.Log("angle" + GetLaunchAngle(50,400,-200,false));
+         Debug.Log("gravity" + Physics.gravity.magnitude);
+         Debug.Log("math Pow test" + Mathf.Pow(2, 2));
+         Debug.Log("squereRoot Test" + Mathf.Sqrt(4));*/
+        //always use max Force?
+        //getAimVector
+
+
+
+
+        //TODO now it should perfectly hit, so we apply a skillbased random rotator function
+
+
         return _aimed;
     }
 
@@ -179,7 +215,7 @@ public class UnitFighter : UnitMovement
         //directShoot i true dann nehmen wir die niedrigere Schussbahn, wenn false, dann eine kurvigere die mehr nach oben geht
         float theta = 0f;
         float gravityConstant = Physics.gravity.magnitude;
-        distance = distance - 1.5f; // to correct it, its always a bit too far idkw
+        distance = distance - 1.5f; // to correct it, its always a bit too far idkw 
         if (directShoot) {
             theta = Mathf.Atan((Mathf.Pow(speed, 2) - Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance,2) + 2*heightDifference*Mathf.Pow(speed,2))))/(gravityConstant*distance)) ;
         }
@@ -188,7 +224,7 @@ public class UnitFighter : UnitMovement
             theta = Mathf.Atan((Mathf.Pow(speed, 2) + Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance, 2) + 2 * heightDifference * Mathf.Pow(speed, 2)))) / (gravityConstant * distance));
         }
         
-        return (theta*180/Mathf.PI);  //change into degrees
+        return (theta*(180/Mathf.PI));  //change into degrees
     }
     
     private bool RotateWeapon(float launchAngle,MissileWeapon weapon)

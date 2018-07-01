@@ -44,7 +44,7 @@ public class UnitMovement : MonoBehaviour {
         
         if (manualTurning)  //turns in the desired direction depending on angularSpeed
         {
-            transform.rotation = Quaternion.Slerp(transform.rotation, wishRotation, agent.angularSpeed*Time.deltaTime/30);
+            transform.rotation = Quaternion.Slerp(transform.rotation, wishRotation, agent.angularSpeed*Time.deltaTime/10); ///10
             if (transform.rotation == wishRotation)
             {
                 manualTurning = false;
@@ -76,7 +76,9 @@ public class UnitMovement : MonoBehaviour {
     protected virtual void TurnToDestination(Vector3 destination)
     {
         manualTurning = true;
-        wishRotation = Quaternion.LookRotation(destination - transform.position);
+        Vector3 ourPosition = new Vector3(transform.position.x, 0f, transform.position.z);
+        Vector3 destinationPosition = new Vector3(destination.x, 0f, destination.z);
+        wishRotation = Quaternion.LookRotation(destinationPosition - ourPosition);
     }
 
     public void GetDamage(DamageType damageType, int damageAmount)
