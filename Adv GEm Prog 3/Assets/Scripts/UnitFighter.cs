@@ -182,10 +182,10 @@ public class UnitFighter : UnitMovement
         {
             base.TurnToDestination(currentAttackingTargetTransform);
 
-            if (Quaternion.Angle(transform.rotation, wishRotation) > 1)  //1 dann zielt er etwas länger aber genauer
+            /*if (Quaternion.Angle(transform.rotation, wishRotation) > 1)  //1 dann zielt er etwas länger aber genauer  unnecessary jetzt wo die waffe sich sowieso zum gegner dreht
             {
                 _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 1 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
-            }
+            }*/
         }
 
 
