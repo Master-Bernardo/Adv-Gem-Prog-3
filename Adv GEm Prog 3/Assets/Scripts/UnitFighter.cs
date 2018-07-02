@@ -95,7 +95,7 @@ public class UnitFighter : UnitMovement
 
     private void MeleeHit(DamageType damageType, int damage)
     {
-        Debug.Log("I attacked Melee");
+        //Debug.Log("I attacked Melee");
         currentAttackingTarget.GetDamage(damageType, damage);
     }
 
@@ -123,7 +123,7 @@ public class UnitFighter : UnitMovement
             if (aimed && weapon.weaponReadyToShoot)
             {
                 if (weapon.AmmoLeft()) weapon.Shoot();
-                else Debug.Log("no Ammo left");
+                //else Debug.Log("no Ammo left");
 
             }
                
@@ -156,7 +156,7 @@ public class UnitFighter : UnitMovement
 
         if (float.IsNaN(launchAngle))
         {
-            Debug.Log("Too far from Target - NaN");
+            //Debug.Log("Too far from Target - NaN");
             launchAngle = 0;
             //TODO dont shoot anymore, get nearer to target, but should not happen
         }
@@ -178,16 +178,24 @@ public class UnitFighter : UnitMovement
         //gravity = g in positive magnitude
         //Formula: time in air = (vY + Sqr[(vY)²-4*(0.5*g)*(-(startH-finalH))]/g
         // but this works only for destinations lower than our starting keight, maybe make a abs of (startH-finalH)
+        float timeInAir;
         float g = Physics.gravity.magnitude;
         float vY = weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180));
         //vY = 5f;
         float startH = weapon.launchPoint.transform.position.y;
         float finalH = currentAttackingTargetTransform.y;
-        float timeInAir = (vY + Mathf.Sqrt((float)(Mathf.Pow(vY, 2) - 4 * (0.5 * g) * (-(startH - finalH))))) / g;
-
+        if (finalH < startH) { 
+            timeInAir = (vY + Mathf.Sqrt((float)(Mathf.Pow(vY, 2) - 4 * (0.5 * g) * (-(startH - finalH))))) / g;
+        }else
+        {
+            //t = distanceX/initiallVeclocityXComponent
+            float vX = weapon.missileLaunchVelocity * Mathf.Cos(launchAngle * (Mathf.PI / 180));
+            float distanceX = Vector3.Distance(currentAttackingTargetTransform, weapon.launchPoint.transform.position);
+            timeInAir = distanceX / vX;
+        }
 
         //Debug.Log("launchAngle: " + launchAngle);
-        Debug.Log("time in air: " + timeInAir);
+        //Debug.Log("time in air: " + timeInAir);
         //Debug.Log(currentAttackingTarget.agent.velocity);
 
         //change the currentAttackingTargetTransform based on this time , take his velocity times this time  //predict his future location
@@ -246,8 +254,8 @@ public class UnitFighter : UnitMovement
         float gravityConstant = Physics.gravity.magnitude;
      
         if (directShoot) {
-            Debug.Log("distance: " + distance);
-            Debug.Log("distanceY: " + heightDifference);
+            //Debug.Log("distance: " + distance);
+            //Debug.Log("distanceY: " + heightDifference);
             theta = Mathf.Atan((Mathf.Pow(speed, 2) - Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance,2) + 2*heightDifference*Mathf.Pow(speed,2))))/(gravityConstant*distance)) ;
         }
         else
@@ -301,13 +309,13 @@ public class UnitFighter : UnitMovement
             MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
             if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable)
             {
-                Debug.Log("stopCouroutine: " + agent.velocity.magnitude);
+                //Debug.Log("stopCouroutine: " + agent.velocity.magnitude);
                 StopCoroutine("LoadWeapon");
                 weapon.isPreparingWeapon = false;
             }
             else if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable)
             {
-                StopCoroutine("WeaponSpannen");
+                //StopCoroutine("WeaponSpannen");
                 weapon.isPreparingWeapon = false;
             }
         }
@@ -325,7 +333,7 @@ public class UnitFighter : UnitMovement
         weapon.isPreparingWeapon = false;
 
         weapon.weaponReadyToShoot = true;
-        Debug.Log("Waffe geladennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ");
+        //Debug.Log("Waffe geladennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ");
     }
     
 

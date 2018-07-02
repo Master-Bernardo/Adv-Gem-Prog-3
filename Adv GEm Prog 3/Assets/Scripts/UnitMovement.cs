@@ -93,7 +93,7 @@ public class UnitMovement : MonoBehaviour {
     {
         if (currentHealth > 0) currentHealth -= damageAmount;
         else currentHealth = 0;
-        Debug.Log("Damage Taken");
+        //Debug.Log("Damage Taken");
     }
 
     public void FaceDirection(Vector3 direction)
@@ -122,7 +122,7 @@ public class UnitMovement : MonoBehaviour {
     }
     public virtual void Attack(UnitMovement target)
     {
-        Debug.Log("superclass Attack");
+        //Debug.Log("superclass Attack");
     }
 
     public int getPlayerID()
