@@ -169,8 +169,24 @@ public class UnitFighter : UnitMovement
         //now calculate how long this would take
         //if(launchAngle<0) change the time in Air calculation - https://sciencing.com/solve-time-flight-projectile-problem-2683.html
         //time of flight in seconds = 2*initiallvelocity*sin(launchAngle)/gravitymagnitude
-        float timeInAir = (2 * weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180))) / Physics.gravity.magnitude; //Mathf.sins takes angle in radians
-        Debug.Log("launchAngle: " + launchAngle);
+
+        //float timeInAir = (2 * weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180))) / Physics.gravity.magnitude; //Mathf.sins takes angle in radians
+
+        //new time in air https://www.youtube.com/watch?v=jb2dWXp_tlw&t=234s&list=LLnkuTCY2XUW7UV3g2Apo5ww&index=2
+        //initiallVelocityYComponent = missileLaunchVelocity * sin(launachAngle)
+        //initiallVelocityYComponent = vY
+        //gravity = g in positive magnitude
+        //Formula: time in air = (vY + Sqr[(vY)²-4*(0.5*g)*(-(startH-finalH))]/g
+        // but this works only for destinations lower than our starting keight, maybe make a abs of (startH-finalH)
+        float g = Physics.gravity.magnitude;
+        float vY = weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180));
+        //vY = 5f;
+        float startH = weapon.launchPoint.transform.position.y;
+        float finalH = currentAttackingTargetTransform.y;
+        float timeInAir = (vY + Mathf.Sqrt((float)(Mathf.Pow(vY, 2) - 4 * (0.5 * g) * (-(startH - finalH))))) / g;
+
+
+        //Debug.Log("launchAngle: " + launchAngle);
         Debug.Log("time in air: " + timeInAir);
         //Debug.Log(currentAttackingTarget.agent.velocity);
 
