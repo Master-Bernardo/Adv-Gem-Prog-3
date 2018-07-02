@@ -113,6 +113,7 @@ public class UnitFighter : UnitMovement
         {
             agent.isStopped = true;
             aimed = (Aim(weapon));
+            
 
             if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable) //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
             {
@@ -182,10 +183,22 @@ public class UnitFighter : UnitMovement
         {
             base.TurnToDestination(currentAttackingTargetTransform);
 
-            /*if (Quaternion.Angle(transform.rotation, wishRotation) > 1)  //1 dann zielt er etwas länger aber genauer  unnecessary jetzt wo die waffe sich sowieso zum gegner dreht
+            if (Quaternion.Angle(transform.rotation, wishRotation) < 5)  //hier kommt ein anderer Drehcode, weil er sonst die letzten grad vie lzu langsam dreht
+            {
+                agent.updateRotation = false;
+                Vector3 ourPosition = new Vector3(transform.position.x, 0f, transform.position.z);
+                Vector3 destinationPosition = new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z);
+                Quaternion perfectAimRotation = Quaternion.LookRotation(destinationPosition - ourPosition);
+
+                transform.rotation = perfectAimRotation;
+                agent.updateRotation = true;
+            }
+
+
+            if (Quaternion.Angle(transform.rotation, wishRotation) > 0.1)  //1 dann zielt er etwas länger aber genauer  unnecessary jetzt wo die waffe sich sowieso zum gegner dreht
             {
                 _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 1 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
-            }*/
+            }
         }
 
 
