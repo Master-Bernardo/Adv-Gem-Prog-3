@@ -21,7 +21,11 @@ public class Projectile : MonoBehaviour {
         }
         
         gameObject.GetComponent<Rigidbody>().isKinematic = true; //so our projectiles will stick - for now
-        
-          
+        if(!collision.gameObject.isStatic) transform.parent = collision.gameObject.transform; //cause some static objects like ground etc are scaled wrong
+        Destroy(gameObject,5);
+
+
+
+
     }
 }
