@@ -7,8 +7,11 @@ public class UnitFighter : UnitMovement
     [Header("Fighter Unit ")]
 
     protected State state;
+
+    //attackingEnemy
     protected Vector3 currentAttackingTargetTransform;
     protected UnitMovement currentAttackingTarget;
+    protected bool killedCurrentTarget = false;
 
     //new values with Weapons:
     public Weapon[] weapons;
@@ -22,6 +25,10 @@ public class UnitFighter : UnitMovement
     [Tooltip("is true falls der Krieger fertiggezielt hat")]
     [SerializeField()]
     private bool aimed = false;
+    [Tooltip("wie gut kann der Krieger zielen")]
+    public float missileAimSkill;
+    [Tooltip("if true, the unit will aim perfectly with out skillbased random rotation applied to weapon")]
+    public bool perfectAim = false;
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
@@ -34,9 +41,17 @@ public class UnitFighter : UnitMovement
     protected enum Behaviour //TODO Unit Behaviour
     {
         Standard, //agressiv nur in Überzahl, sonst defensiv, bei großer unterzahl fliehen
-        Aggressive,
-        Defensive,  //melle greift nur im meleeradius an, verfolgt nicht, wenn angegriffen wird von anderen Melee, geht es so nah ran, dass es sie angreifen kann/bzw ganz kleiner agressiver Angriffsradius
+        Aggressive, //greift alles an was er sieht
+        Defensive,  //melle greift nur im gewissen radius an, verfolgt nicht, dreht sich immer zu den nähesten Gegner
+        DefensiveStone, //schlägt nur zurück wenn er angegriffen wurde, bewegt sich nicht
         Evasive, //flieht immer von Gegnern
+    }
+
+    protected enum AttackBehaviour
+    {
+        Determined, //geht auf den selektierten Gegner zu, ignoriert alles andere in seiner Umgebung
+        DeterminedEvasive, //versucht den selektierten Gegner anzugreifen, geht dabei anderen Gegners aus dem Weg
+        Standard, //geht auf den selektierten Gegner zu, wechselt aber auf andere gegner über, falls diese näher an ihm sind
     }
 
 
@@ -49,7 +64,15 @@ public class UnitFighter : UnitMovement
     {
         base.Update();
 
-        if(state==State.Attacking) currentAttackingTargetTransform = currentAttackingTarget.gameObject.transform.position;
+        //check if we already killed our Target
+        if (state == State.Attacking && currentAttackingTarget == null)
+        {
+            killedCurrentTarget = true;
+            //now search for another target or change state to idle
+            state = State.Idle;
+        }else killedCurrentTarget = false;
+
+        if (state==State.Attacking) currentAttackingTargetTransform = currentAttackingTarget.gameObject.transform.position;
 
         if (state == State.Attacking && weapons[selectedWeapon] is MeleeWeapon)
         {
@@ -122,7 +145,11 @@ public class UnitFighter : UnitMovement
 
             if (aimed && weapon.weaponReadyToShoot)
             {
-                if (weapon.AmmoLeft()) weapon.Shoot();
+                if (weapon.AmmoLeft())
+                {
+                    RandomRotator(weapon);
+                    weapon.Shoot();
+                }
                 //else Debug.Log("no Ammo left");
 
             }
@@ -139,11 +166,27 @@ public class UnitFighter : UnitMovement
     {
         bool predictedFutureLocation = false;
         bool _aimed = false;
-        
-        //checked Raycast if we dont see enemy, directShoot = false  //maybe add later //TODO
 
-        //goto here
-        AimAtPredicted:
+    /*   ------LEave the Raycast out for now- too much Performance Drain, make it selectable by player maybe---
+    if (!predictedFutureLocation) {
+        //checked Raycast if we dont see enemy, directShoot = false  
+        //we want to hit the collider of our target
+        Debug.Log("aim");
+        RaycastHit hit;
+        // Does the ray intersect any objects excluding the player layer
+        Vector3 direction = currentAttackingTargetTransform - transform.position;
+        direction.Normalize();
+        if (Physics.Raycast(weapon.transform.position + direction, direction, out hit, weapon.missileRange)) //hier mal layermask zur performanceOptimierung hinzufügen
+        {
+            Debug.Log(hit.collider.gameObject);
+            if (hit.collider.gameObject.GetComponent<UnitMovement>() == currentAttackingTarget) directFire = true;
+            else directFire = false;
+        }
+    }
+    */
+
+    //goto here
+    AimAtPredicted:
 
 
         Vector3 distDelta = currentAttackingTargetTransform - weapon.launchPoint.transform.position;
@@ -162,15 +205,7 @@ public class UnitFighter : UnitMovement
         }
 
 
-        if(RotateWeapon(launchAngle,weapon)) _aimed = true;  //wenn wir zuende mir der Waffe gezielt haben
-
-
-
-        //now calculate how long this would take
-        //if(launchAngle<0) change the time in Air calculation - https://sciencing.com/solve-time-flight-projectile-problem-2683.html
-        //time of flight in seconds = 2*initiallvelocity*sin(launchAngle)/gravitymagnitude
-
-        //float timeInAir = (2 * weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180))) / Physics.gravity.magnitude; //Mathf.sins takes angle in radians
+        if (RotateWeapon(launchAngle, weapon)) _aimed = true;  //wenn wir zuende mir der Waffe gezielt haben
 
         //new time in air https://www.youtube.com/watch?v=jb2dWXp_tlw&t=234s&list=LLnkuTCY2XUW7UV3g2Apo5ww&index=2
         //initiallVelocityYComponent = missileLaunchVelocity * sin(launachAngle)
@@ -184,9 +219,9 @@ public class UnitFighter : UnitMovement
         //vY = 5f;
         float startH = weapon.launchPoint.transform.position.y;
         float finalH = currentAttackingTargetTransform.y;
-        if (finalH < startH) { 
+        if (finalH < startH) {
             timeInAir = (vY + Mathf.Sqrt((float)(Mathf.Pow(vY, 2) - 4 * (0.5 * g) * (-(startH - finalH))))) / g;
-        }else
+        } else
         {
             //t = distanceX/initiallVeclocityXComponent
             float vX = weapon.missileLaunchVelocity * Mathf.Cos(launchAngle * (Mathf.PI / 180));
@@ -194,16 +229,12 @@ public class UnitFighter : UnitMovement
             timeInAir = distanceX / vX;
         }
 
-        //Debug.Log("launchAngle: " + launchAngle);
-        //Debug.Log("time in air: " + timeInAir);
-        //Debug.Log(currentAttackingTarget.agent.velocity);
-
         //change the currentAttackingTargetTransform based on this time , take his velocity times this time  //predict his future location
         if (!predictedFutureLocation) {
             currentAttackingTargetTransform += currentAttackingTarget.agent.velocity * (timeInAir);
             predictedFutureLocation = true;
             goto AimAtPredicted;
-        }else
+        } else
         {
             base.TurnToDestination(currentAttackingTargetTransform);
 
@@ -225,23 +256,8 @@ public class UnitFighter : UnitMovement
             }
         }
 
-
-
-        //DebuggingBLock:
-        /*Debug.Log("distance" + Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)));
-         Debug.Log("heightDifference" + (currentAttackingTargetTransform.y - transform.position.y));
-         Debug.Log("angle" + GetLaunchAngle(50,400,-200,false));
-         Debug.Log("gravity" + Physics.gravity.magnitude);
-         Debug.Log("math Pow test" + Mathf.Pow(2, 2));
-         Debug.Log("squereRoot Test" + Mathf.Sqrt(4));*/
-        //always use max Force?
-        //getAimVector
-
-
-
-
-        //TODO now it should perfectly hit, so we apply a skillbased random rotator function
-
+        //now it should perfectly hit, so we apply a skillbased random rotator function
+       
 
         return _aimed;
     }
@@ -254,8 +270,6 @@ public class UnitFighter : UnitMovement
         float gravityConstant = Physics.gravity.magnitude;
      
         if (directShoot) {
-            //Debug.Log("distance: " + distance);
-            //Debug.Log("distanceY: " + heightDifference);
             theta = Mathf.Atan((Mathf.Pow(speed, 2) - Mathf.Sqrt(Mathf.Pow(speed, 4) - gravityConstant * (gravityConstant * Mathf.Pow(distance,2) + 2*heightDifference*Mathf.Pow(speed,2))))/(gravityConstant*distance)) ;
         }
         else
@@ -309,7 +323,7 @@ public class UnitFighter : UnitMovement
             MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
             if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable)
             {
-                //Debug.Log("stopCouroutine: " + agent.velocity.magnitude);
+                //Debug.Log("stoppeWaffeLaden/Spannen ");
                 StopCoroutine("LoadWeapon");
                 weapon.isPreparingWeapon = false;
             }
@@ -352,6 +366,22 @@ public class UnitFighter : UnitMovement
     private void OutOfAmmunition()
     {
 
+    }
+
+    private void RandomRotator(MissileWeapon weapon)
+    {
+        if (!perfectAim)
+        {
+            float step = 1 / missileAimSkill * 25; //5 ist grad um die wir rotieren
+            if (aimed)
+            {
+                weapon.transform.Rotate(
+                    Random.Range(-step, step),
+                    Random.Range(-step, step),
+                    Random.Range(-step, step));
+
+            }
+        }
     }
 }
 

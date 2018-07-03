@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour {
     public static GameManager Instance;
     public Camera mainCam;
 
+    public PlayerController playerController;
+
     //unit sets - for now only player 1- we and player2 - enemy AI
     private HashSet<Transform> player1Units;
     private HashSet<Transform> player2Units;
@@ -53,6 +55,20 @@ public class GameManager : MonoBehaviour {
             player1Units.Add(unit);
         else
             player2Units.Add(unit);
+    }
+
+    public void RemoveUnitFromGame(Transform unit, int playerID)
+    {
+        if (playerID == 1)
+        {
+            player1Units.Remove(unit);
+            playerController.DeleteUnit(unit.gameObject.GetComponent<UnitMovement>());
+        }
+        else
+        {
+            player2Units.Remove(unit);
+            playerController.DeleteUnit(unit.gameObject.GetComponent<UnitMovement>());
+        }
     }
 
     //returns the currentRotation of the Camera, is used by The HP bars to rotate to this Camera

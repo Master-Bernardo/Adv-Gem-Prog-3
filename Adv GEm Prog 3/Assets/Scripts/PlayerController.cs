@@ -184,36 +184,38 @@ public class PlayerController : MonoBehaviour {
 
         foreach (Transform transform in GameManager.Instance.GetAllUnits())
         {
-            Vector3 unitScreenPosition = cam.WorldToScreenPoint(transform.position);
-            bool isInRectangle = false;
-            //wann drinn
-            if (lmbPosition1.x > lmbPosition2.x && lmbPosition1.y > lmbPosition2.y)
-            {
-                if (unitScreenPosition.x < lmbPosition1.x && unitScreenPosition.y < lmbPosition1.y && unitScreenPosition.x > lmbPosition2.x && unitScreenPosition.y > lmbPosition2.y) isInRectangle = true;
-            }
-            else if (lmbPosition1.x > lmbPosition2.x && lmbPosition1.y < lmbPosition2.y)
-            {
-                if (unitScreenPosition.x < lmbPosition1.x && unitScreenPosition.y > lmbPosition1.y && unitScreenPosition.x > lmbPosition2.x && unitScreenPosition.y < lmbPosition2.y) isInRectangle = true;
-            }
-            else if (lmbPosition1.x < lmbPosition2.x && lmbPosition1.y < lmbPosition2.y)
-            {
-                if (unitScreenPosition.x > lmbPosition1.x && unitScreenPosition.y > lmbPosition1.y && unitScreenPosition.x < lmbPosition2.x && unitScreenPosition.y < lmbPosition2.y) isInRectangle = true;
-            }
-            else //(position1.x < position2.x && position1.y > position2.y)
-            {
-                if (unitScreenPosition.x > lmbPosition1.x && unitScreenPosition.y < lmbPosition1.y && unitScreenPosition.x < lmbPosition2.x && unitScreenPosition.y > lmbPosition2.y) isInRectangle = true;
-            }
+            if (transform != null) { //somehow this is sometimes null idkw
+                Vector3 unitScreenPosition = cam.WorldToScreenPoint(transform.position);
+                bool isInRectangle = false;
+                //wann drinn
+                if (lmbPosition1.x > lmbPosition2.x && lmbPosition1.y > lmbPosition2.y)
+                {
+                    if (unitScreenPosition.x < lmbPosition1.x && unitScreenPosition.y < lmbPosition1.y && unitScreenPosition.x > lmbPosition2.x && unitScreenPosition.y > lmbPosition2.y) isInRectangle = true;
+                }
+                else if (lmbPosition1.x > lmbPosition2.x && lmbPosition1.y < lmbPosition2.y)
+                {
+                    if (unitScreenPosition.x < lmbPosition1.x && unitScreenPosition.y > lmbPosition1.y && unitScreenPosition.x > lmbPosition2.x && unitScreenPosition.y < lmbPosition2.y) isInRectangle = true;
+                }
+                else if (lmbPosition1.x < lmbPosition2.x && lmbPosition1.y < lmbPosition2.y)
+                {
+                    if (unitScreenPosition.x > lmbPosition1.x && unitScreenPosition.y > lmbPosition1.y && unitScreenPosition.x < lmbPosition2.x && unitScreenPosition.y < lmbPosition2.y) isInRectangle = true;
+                }
+                else //(position1.x < position2.x && position1.y > position2.y)
+                {
+                    if (unitScreenPosition.x > lmbPosition1.x && unitScreenPosition.y < lmbPosition1.y && unitScreenPosition.x < lmbPosition2.x && unitScreenPosition.y > lmbPosition2.y) isInRectangle = true;
+                }
 
-            UnitMovement unit = transform.gameObject.GetComponent<UnitMovement>();
-            if (isInRectangle)
-            {
-                unit.Select();
-                selectedUnits.Add(unit);
-            }
-            else
-            {
-                transform.gameObject.GetComponent<UnitMovement>().Deselect();
-                selectedUnits.Remove(unit);
+                UnitMovement unit = transform.gameObject.GetComponent<UnitMovement>();
+                if (isInRectangle)
+                {
+                    unit.Select();
+                    selectedUnits.Add(unit);
+                }
+                else
+                {
+                    transform.gameObject.GetComponent<UnitMovement>().Deselect();
+                    selectedUnits.Remove(unit);
+                }
             }
         }
     }
@@ -234,4 +236,11 @@ public class PlayerController : MonoBehaviour {
         }
         //Debug.Log(direction);
     }
+
+    public void DeleteUnit(UnitMovement unit)
+    {
+        if (selectedUnits.Contains(unit)) selectedUnits.Remove(unit);
+    }
+
+
 }

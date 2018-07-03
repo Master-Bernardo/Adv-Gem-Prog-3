@@ -729,8 +729,10 @@ MonoBehaviour:
   - {fileID: 114941579049687556}
   - {fileID: 114941579049687556}
   selectedWeapon: 1
-  directFire: 1
+  directFire: 0
   aimed: 0
+  missileAimSkill: 5
+  perfectAim: 0
   steadfast: 0
 --- !u!114 &114550010085192044
 MonoBehaviour:
@@ -859,7 +861,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 1250859360701376}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5000001
+  m_Radius: 1
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50

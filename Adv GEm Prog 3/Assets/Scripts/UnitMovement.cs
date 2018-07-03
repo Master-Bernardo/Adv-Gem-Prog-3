@@ -92,8 +92,11 @@ public class UnitMovement : MonoBehaviour {
     public void GetDamage(DamageType damageType, int damageAmount)
     {
         if (currentHealth > 0) currentHealth -= damageAmount;
-        else currentHealth = 0;
-        //Debug.Log("Damage Taken");
+        else
+        {
+            currentHealth = 0;
+            Die();
+        }
     }
 
     public void FaceDirection(Vector3 direction)
@@ -128,6 +131,15 @@ public class UnitMovement : MonoBehaviour {
     public int getPlayerID()
     {
         return playerID;
+    }
+
+    protected void Die()
+    {
+        //for now without fancy animation and "leichenspawn"
+       
+        GameManager.Instance.RemoveUnitFromGame(transform, playerID);
+        Destroy(gameObject);
+
     }
     
 }
