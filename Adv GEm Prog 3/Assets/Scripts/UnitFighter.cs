@@ -98,22 +98,6 @@ public class UnitFighter : UnitMovement
                     currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, Time.deltaTime * currentSelectedMissileWeapon.aimSpeed);
                 }
             }
-
-            if (missileAttack)
-            {
-                if (!missileAttackCouroutineRunning)
-                {
-                    InvokeRepeating("MissileAttack", 0f + Random.Range(0, 1f), 0.5f );
-                    missileAttackCouroutineRunning = true;
-                    //Debug.Log("StartedCouroutine");
-                }
-            }else
-            {
-                //StopCoroutine("MissileAttack");
-                CancelInvoke();
-                missileAttackCouroutineRunning = false;
-            }
-
         }
         else if(state == State.Idle)
         {
@@ -124,6 +108,23 @@ public class UnitFighter : UnitMovement
                 if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon && weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) StartCoroutine("LoadWeapon");
             }
             #endregion
+        }
+
+        if (!missileAttackCouroutineRunning)
+        {
+            if (missileAttack)
+            {
+                InvokeRepeating("MissileAttack", 0f + Random.Range(0, 1f), 0.5f);
+                missileAttackCouroutineRunning = true;
+                //Debug.Log("StartedCouroutine");
+            }
+        }
+        else if(!missileAttack)
+        {
+            //StopCoroutine("MissileAttack");
+            //Debug.Log("stoppedCOuroutine");
+            CancelInvoke();
+            missileAttackCouroutineRunning = false;
         }
     }
 
@@ -157,6 +158,7 @@ public class UnitFighter : UnitMovement
         currentAttackingTarget.GetDamage(damageType, damage);
     }
 
+    #region MissileAttack & Aim
     public void  MissileAttack()
     {
         // yield return new WaitForSeconds(0.5f);
@@ -232,7 +234,7 @@ public class UnitFighter : UnitMovement
         direction.Normalize();
         if (Physics.Raycast(weapon.transform.position + direction, direction, out hit, weapon.missileRange)) //hier mal layermask zur performanceOptimierung hinzufügen
         {
-            Debug.Log(hit.collider.gameObject);
+            //Debug.Log(hit.collider.gameObject);
             if (hit.collider.gameObject.GetComponent<UnitMovement>() == currentAttackingTarget) isTheWayFree = true;
             else isTheWayFree = false;
         }
@@ -297,7 +299,7 @@ public class UnitFighter : UnitMovement
         {
             base.TurnToDestination(predictedAttackingPosition);
 
-            if (Quaternion.Angle(transform.rotation, wishRotation) < 5)  //hier kommt ein anderer Drehcode, weil er sonst die letzten grad vie lzu langsam dreht
+            if (Quaternion.Angle(transform.rotation, wishRotation) < 10)  //hier kommt ein anderer Drehcode, weil er sonst die letzten grad vie lzu langsam dreht
             {
                 agent.updateRotation = false;
                 Vector3 ourPosition = new Vector3(transform.position.x, 0f, transform.position.z);
@@ -350,8 +352,55 @@ public class UnitFighter : UnitMovement
         if (weapon.transform.localRotation == wishedWeaponRotation) return true;
         return false;
     }
-    
-    
+
+    //TODO laster when we dont have enough amunition for a weapon we need to communicate this somehow
+    private void OutOfAmmunition()
+    {
+
+    }
+
+    private void RandomRotator(MissileWeapon weapon)
+    {
+        if (!perfectAim)
+        {
+            float step = 1 / missileAimSkill * 25; //5 ist grad um die wir rotieren
+            if (aimed)
+            {
+                weapon.transform.Rotate(
+                    Random.Range(-step, step),
+                    Random.Range(-step, step),
+                    Random.Range(-step, step));
+
+            }
+        }
+    }
+
+    //ändert den bool isReadyToShoot nach der drawTime
+
+    IEnumerator LoadWeapon()
+    {
+        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
+        weapon.isPreparingWeapon = true;
+        yield return new WaitForSeconds(weapon.missileReloadTime);
+        weapon.isPreparingWeapon = false;
+
+        weapon.weaponReadyToShoot = true;
+        //Debug.Log("Waffe geladennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ");
+    }
+
+
+    //ändert den bool isReadyToShoot nach der loadTime
+
+    IEnumerator WeaponSpannen()
+    {
+        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
+        weapon.isPreparingWeapon = true;
+        yield return new WaitForSeconds(weapon.missileReloadTime);
+        weapon.isPreparingWeapon = false;
+        weapon.weaponReadyToShoot = true;
+    }
+
+    #endregion
 
 
     public override void SetDestination(Vector3 destination)  //set destination with rmb
@@ -369,6 +418,7 @@ public class UnitFighter : UnitMovement
 
     private void AbortAttack()
     {
+        //Debug.Log("aborted Attack");
         if (state == State.Attacking)
         {
             state = State.Idle; 
@@ -393,54 +443,9 @@ public class UnitFighter : UnitMovement
     }
 
 
-    //ändert den bool isReadyToShoot nach der drawTime
-
-    IEnumerator LoadWeapon()
-    {
-        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
-        weapon.isPreparingWeapon = true;
-        yield return new WaitForSeconds(weapon.missileReloadTime);
-        weapon.isPreparingWeapon = false;
-
-        weapon.weaponReadyToShoot = true;
-        //Debug.Log("Waffe geladennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ");
-    }
-    
-
-    //ändert den bool isReadyToShoot nach der loadTime
-
-    IEnumerator WeaponSpannen()
-    {
-        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
-        weapon.isPreparingWeapon = true;
-        yield return new WaitForSeconds(weapon.missileReloadTime);
-        weapon.isPreparingWeapon = false;
-        weapon.weaponReadyToShoot = true;
-    }
-
    
 
-    //TODO laster when we dont have enough amunition for a weapon we need to communicate this somehow
-    private void OutOfAmmunition()
-    {
 
-    }
-
-    private void RandomRotator(MissileWeapon weapon)
-    {
-        if (!perfectAim)
-        {
-            float step = 1 / missileAimSkill * 25; //5 ist grad um die wir rotieren
-            if (aimed)
-            {
-                weapon.transform.Rotate(
-                    Random.Range(-step, step),
-                    Random.Range(-step, step),
-                    Random.Range(-step, step));
-
-            }
-        }
-    }
 }
 
 
