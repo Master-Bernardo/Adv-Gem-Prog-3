@@ -38,7 +38,7 @@ GameObject:
   - component: {fileID: 4629393231861084}
   - component: {fileID: 114321874726005864}
   m_Layer: 0
-  m_Name: Arrows
+  m_Name: Bolts
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -237,7 +237,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1250859360701376}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.1, y: 0, z: -2.92}
+  m_LocalPosition: {x: -1.67, y: 0, z: -2.92}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4879592272550678}
@@ -705,7 +705,7 @@ MonoBehaviour:
   currentAmmo: 0
   maxAmmo: 50
   velocityModifier: 0
-  ammoType: 0
+  ammoType: 1
 --- !u!114 &114437701634308054
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -731,7 +731,7 @@ MonoBehaviour:
   selectedWeapon: 1
   directFire: 0
   aimed: 0
-  missileAimSkill: 5
+  missileAimSkill: 10
   perfectAim: 0
   steadfast: 0
 --- !u!114 &114550010085192044
@@ -750,8 +750,6 @@ MonoBehaviour:
   missileReloadTime: 2
   missileLaunchVelocity: 15
   missileRange: 0
-  projectilePrefab: {fileID: 1825876340892556, guid: 44c3be20a1bff454381726df6ccb3eb8,
-    type: 2}
   aimSpeed: 500
   weaponReadyToShoot: 0
   isPreparingWeapon: 0
@@ -773,16 +771,14 @@ MonoBehaviour:
   damage: 5
   model: {fileID: 0}
   missileReloadTime: 3
-  missileLaunchVelocity: 15
+  missileLaunchVelocity: 20
   missileRange: 0
-  projectilePrefab: {fileID: 1825876340892556, guid: 44c3be20a1bff454381726df6ccb3eb8,
-    type: 2}
   aimSpeed: 500
   weaponReadyToShoot: 0
   isPreparingWeapon: 0
   launchPoint: {fileID: 1801317142491522}
   missileWeaponType: 1
-  neededAmmoType: 0
+  neededAmmoType: 1
   selectedAmmo: {fileID: 114321874726005864}
 --- !u!114 &114941579049687556
 MonoBehaviour:

@@ -13,7 +13,7 @@ public class UnitMovement : MonoBehaviour {
 
     public int playerID = 1;
     private bool selected = false;
-    private bool moving = false;
+    public bool moving = false;
     [Space(10)]
 
     //for manuall turning via holding rmb - wil be changed
@@ -29,7 +29,12 @@ public class UnitMovement : MonoBehaviour {
 
     protected virtual void Update()
     {
-        if (agent.velocity.magnitude > 1) moving = true;
+        if (agent.velocity.magnitude > 1)
+        {
+            moving = true;
+            manualTurning = false;
+            agent.updateRotation = true;
+        }
         else moving = false;
 
         if (selected)
@@ -37,17 +42,6 @@ public class UnitMovement : MonoBehaviour {
             healthbar.UpdateHealthBar(currentHealth / maxHealth);
         }
 
-        if (Input.GetKeyDown(KeyCode.K)) // for debugging
-        {
-            currentHealth -= 10;
-        }
-
-        if (moving)
-        {
-            manualTurning = false;
-            agent.updateRotation = true;
-        }
-        
         if (manualTurning)  //turns in the desired direction depending on angularSpeed
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, wishRotation, agent.angularSpeed*Time.deltaTime/30); ///10
@@ -55,7 +49,6 @@ public class UnitMovement : MonoBehaviour {
             {
                 manualTurning = false;
                 agent.updateRotation = true;
-                //agent.updateRotation = true;
             }
         }
         

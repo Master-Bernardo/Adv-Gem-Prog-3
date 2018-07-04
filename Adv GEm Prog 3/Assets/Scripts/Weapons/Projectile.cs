@@ -8,6 +8,7 @@ public class Projectile : MonoBehaviour {
     DamageType damageType;
     [Tooltip("a bullet is a ball, but a bold or arrow are not")]
     public bool ball = false;
+    bool isFlying;
 
     public Rigidbody rb;
 
@@ -15,13 +16,16 @@ public class Projectile : MonoBehaviour {
     {
             //for better performance, dont do this every frame
             InvokeRepeating("AdjustRotation", 0f, 0.2f);
-  
+            
     }
 
-    public void setDamage(int damage, DamageType damageType)
+    public void SetFlyingParams(int damage, DamageType damageType, Vector3 velocity)
     {
         this.damage = damage;
         this.damageType = damageType;
+        rb.velocity = velocity;
+        rb.isKinematic = false;
+        isFlying = true;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -32,16 +36,19 @@ public class Projectile : MonoBehaviour {
                 collision.gameObject.GetComponent<UnitMovement>().GetDamage(damageType,damage);
             }
 
-            Destroy(gameObject.GetComponent<Rigidbody>()); //so our projectiles will stick - for now
-            if(!collision.gameObject.isStatic) transform.parent = collision.gameObject.transform; //cause some static objects like ground etc are scaled wrong
-            Destroy(gameObject,5);
+            //Destroy(gameObject.GetComponent<Rigidbody>()); //so our projectiles will stick - for now
+            rb.isKinematic = true;
+            //if(!collision.gameObject.isStatic) transform.parent = collision.gameObject.transform; //cause some static objects like ground etc are scaled wrong
+            //parenten auslassen, anderen Stickcode ausdenken
+            //Destroy(gameObject,5);
+            isFlying = false;
         }
 
     }
 
     void AdjustRotation()
     {
-        if (!ball && rb != null)
+        if (!ball && isFlying)
         {
             transform.rotation = Quaternion.LookRotation(rb.velocity);
         }

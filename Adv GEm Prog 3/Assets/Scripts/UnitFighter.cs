@@ -65,27 +65,34 @@ public class UnitFighter : UnitMovement
         base.Update();
 
         //check if we already killed our Target
-        if (state == State.Attacking && currentAttackingTarget == null)
+        if(state == State.Attacking)
         {
-            killedCurrentTarget = true;
-            //now search for another target or change state to idle
-            state = State.Idle;
-        }else killedCurrentTarget = false;
+            if (currentAttackingTarget == null)
+            {
+                killedCurrentTarget = true;
+                //now search for another target or change state to idle
+                state = State.Idle;
+            }
+            else
+            {
+                    currentAttackingTargetTransform = currentAttackingTarget.gameObject.transform.position;
+                    killedCurrentTarget = false;
+            
 
-        if (state==State.Attacking) currentAttackingTargetTransform = currentAttackingTarget.gameObject.transform.position;
-
-        if (state == State.Attacking && weapons[selectedWeapon] is MeleeWeapon)
-        {
-            MeleeAttack();
+                if (weapons[selectedWeapon] is MeleeWeapon)
+                {
+                    MeleeAttack();
+                }
+                else if (weapons[selectedWeapon] is MissileWeapon)
+                {
+                    MissileAttack();
+                }
+            }
         }
-        else if (state == State.Attacking && weapons[selectedWeapon] is MissileWeapon)
+        else if(state == State.Idle)
         {
-            MissileAttack();
-        }
-
-        //automaticly Load when we stay in a position 
-        if (agent.velocity.magnitude < 0.1) { 
-            if(state == State.Idle && weapons[selectedWeapon] is MissileWeapon)
+            //automaticly Load when we stay in a position 
+            if (!moving && weapons[selectedWeapon] is MissileWeapon)
             {
                 MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
                 if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon && weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) StartCoroutine("LoadWeapon");

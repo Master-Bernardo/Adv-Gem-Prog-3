@@ -11,7 +11,7 @@ public class MissileWeapon : Weapon {
     public float missileLaunchVelocity;
     [Tooltip("Gets calculatet automaticly, based on velocity dont write anything in here")]
     public float missileRange = 0; 
-    public GameObject projectilePrefab;
+
     [Tooltip("how fast does our warrior aim - 500 is quite good")]
     public float aimSpeed = 20;
     [Tooltip("dont touch, is weapon loaded - or is the bow drawn and ready to release?")]
@@ -45,13 +45,14 @@ public class MissileWeapon : Weapon {
     public void Shoot()
     {
         selectedAmmo.UseAmmo();
-        
-        GameObject projectile = Instantiate(projectilePrefab, launchPoint.transform.position, transform.rotation);
-        Rigidbody missileRb = projectile.GetComponent<Rigidbody>();
+
+        GameObject projectile = ProjectilePooler.Instance.SpawnFromPool(selectedAmmo.ammoType.ToString(), launchPoint.transform.position, transform.rotation);
+        //GameObject projectile = Instantiate(projectilePrefab, launchPoint.transform.position, transform.rotation);
+
         Projectile projectileScript = projectile.GetComponent<Projectile>();
     
-        projectileScript.setDamage(damage + selectedAmmo.damage, selectedAmmo.damageType);
-        missileRb.velocity = transform.forward * missileLaunchVelocity;
+        projectileScript.SetFlyingParams(damage + selectedAmmo.damage, selectedAmmo.damageType, transform.forward * missileLaunchVelocity);
+        //projectileSpript = transform.forward * missileLaunchVelocity;
 
         weaponReadyToShoot = false; //nach dem Schuss müssen wir nochmal laden oder bogen spannen
 

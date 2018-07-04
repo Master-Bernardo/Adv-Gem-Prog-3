@@ -36,11 +36,11 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 4737896801436990}
-  - component: {fileID: 54711822066820230}
   - component: {fileID: 135444929321445794}
   - component: {fileID: 33884721438615372}
   - component: {fileID: 23320520013481056}
   - component: {fileID: 114493329074827248}
+  - component: {fileID: 54472741377980938}
   m_Layer: 2
   m_Name: ProtoProjectile
   m_TagString: Projectile
@@ -159,7 +159,7 @@ MeshFilter:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1825876340892556}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!54 &54711822066820230
+--- !u!54 &54472741377980938
 Rigidbody:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -186,7 +186,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ball: 0
-  rb: {fileID: 54711822066820230}
+  rb: {fileID: 54472741377980938}
 --- !u!135 &135444929321445794
 SphereCollider:
   m_ObjectHideFlags: 1
