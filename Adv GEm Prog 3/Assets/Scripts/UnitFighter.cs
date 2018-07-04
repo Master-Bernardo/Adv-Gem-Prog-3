@@ -12,7 +12,6 @@ public class UnitFighter : UnitMovement
     protected Transform currentAttackingTargetTransform; //referenz auf den Transform des Objektes
     protected Vector3 predictedAttackingPosition; //müssen mir continuerlich ändern, ist der Vektor den wir angreifen
     protected UnitMovement currentAttackingTarget;
-    protected bool killedCurrentTarget = false;
 
     //new values with Weapons:
     public Weapon[] weapons;
@@ -30,6 +29,11 @@ public class UnitFighter : UnitMovement
     public float missileAimSkill;
     [Tooltip("if true, the unit will aim perfectly with out skillbased random rotation applied to weapon")]
     public bool perfectAim = false;
+
+    private Quaternion wishedWeaponRotation = Quaternion.identity;
+    MissileWeapon currentSelectedMissileWeapon;
+    bool missileAttack = false;
+    bool missileAttackCouroutineRunning = false;
 
     //for directFireCheckRaycast
     bool automaticDirectFire = true;
@@ -71,39 +75,55 @@ public class UnitFighter : UnitMovement
     {
         base.Update();
 
-        //check if we already killed our Target
+        missileAttack = false;
+
         if(state == State.Attacking)
         {
+            //checkIfTarget is Dead
             if (currentAttackingTarget == null)
             {
-                killedCurrentTarget = true;
                 //now search for another target or change state to idle
                 state = State.Idle;
             }
             else
             {
-                    
-                    killedCurrentTarget = false;
-            
-
                 if (weapons[selectedWeapon] is MeleeWeapon)
                 {
                     MeleeAttack();
                 }
                 else if (weapons[selectedWeapon] is MissileWeapon)
                 {
-                    MissileAttack();
+                    MissileWeapon currentSelectedMissileWeapon = weapons[selectedWeapon] as MissileWeapon;
+                    missileAttack = true; //make missileAttack only every 0.5 seconds
+                    currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, Time.deltaTime * currentSelectedMissileWeapon.aimSpeed);
                 }
             }
+
+            if (missileAttack)
+            {
+                if (!missileAttackCouroutineRunning)
+                {
+                    InvokeRepeating("MissileAttack", 0f + Random.Range(0, 1f), 0.5f );
+                    missileAttackCouroutineRunning = true;
+                    //Debug.Log("StartedCouroutine");
+                }
+            }else
+            {
+                //StopCoroutine("MissileAttack");
+                CancelInvoke();
+                missileAttackCouroutineRunning = false;
+            }
+
         }
         else if(state == State.Idle)
         {
-            //automaticly Load when we stay in a position 
+            #region automaticlyLoadWhileStanding
             if (!moving && weapons[selectedWeapon] is MissileWeapon)
             {
                 MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
                 if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon && weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) StartCoroutine("LoadWeapon");
             }
+            #endregion
         }
     }
 
@@ -115,7 +135,7 @@ public class UnitFighter : UnitMovement
     }
 
 
-    public void MeleeAttack()
+    public void MeleeAttack()  //waiting for Update //TODO
     {
         SetDestinationAttack(currentAttackingTargetTransform.position);
         MeleeWeapon weapon = weapons[selectedWeapon] as MeleeWeapon; //cast Notwendig
@@ -137,74 +157,70 @@ public class UnitFighter : UnitMovement
         currentAttackingTarget.GetDamage(damageType, damage);
     }
 
-    private void MissileAttack()
+    public void  MissileAttack()
     {
-        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig //später das nur einmal machen
+        // yield return new WaitForSeconds(0.5f);
+        if (currentAttackingTargetTransform != null) { 
+            MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig //später das nur einmal machen beim selectWeapon
 
-        //wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
+            //wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
+            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot && !weapon.isPreparingWeapon)
+           {
+                TurnToDestination(currentAttackingTargetTransform.position);
+                StartCoroutine("LoadWeapon");
+                //Loading
+           }
+
        
-       if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot && !weapon.isPreparingWeapon)
-       {
-            TurnToDestination(currentAttackingTargetTransform.position);
-            StartCoroutine("LoadWeapon");
-            //Loading
-       }
-
-       
-        if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) // wenn wir im Range sind
-        {
-            //aiming
-            /*if (!hasCheckedDirectFire && automaticDirectFire && !moving) //checken wir nur wenn wir stehenbleiben
+            if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) // wenn wir im Range sind
             {
-                directFire = DirectFireCheck(weapon);
-                hasCheckedDirectFire = true;
-            }*/
-            agent.isStopped = true;
-            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
-            {
-                if (weapon.weaponReadyToShoot)
+                agent.isStopped = true;
+                if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
                 {
-                    aimed = (Aim(weapon));
-                    Debug.Log("loaded");
+                    if (weapon.weaponReadyToShoot)
+                    {
+                        aimed = (Aim(weapon));
+                    }
+                    else
+                    {
+                        TurnToDestination(currentAttackingTargetTransform.position);
+                    }
+                }else aimed = (Aim(weapon));  //sonst drawable Weapons können während des drawen zielen
+
+
+                if (Quaternion.Angle(transform.rotation, wishRotation) < 5 && !raycastSendForThisAttack)
+                {//if turnedToDestination
+                    directFire = DirectFireCheck(weapon);
+                    raycastSendForThisAttack = true;
                 }
-                else
+
+                if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable) //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
                 {
-                    TurnToDestination(currentAttackingTargetTransform.position);
+                    if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("WeaponSpannen");
                 }
-            }else aimed = (Aim(weapon));
 
-            if (Quaternion.Angle(transform.rotation, wishRotation) < 5 && !raycastSendForThisAttack)
-            {//if turnedToDestination
-                directFire = DirectFireCheck(weapon);
-                raycastSendForThisAttack = true;
-            }
-
-            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable) //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
-            {
-                if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("WeaponSpannen");
-            }
-
-            if (aimed && weapon.weaponReadyToShoot)
-            {
-                if (weapon.AmmoLeft())
+                if (aimed && weapon.weaponReadyToShoot)
                 {
-                    RandomRotator(weapon);
-                    weapon.Shoot();
-                    raycastSendForThisAttack = false;
-                }
-                    //else Debug.Log("no Ammo left");
+                     if (weapon.AmmoLeft())
+                     {
+                         RandomRotator(weapon);
+                         weapon.Shoot();
+                         raycastSendForThisAttack = false;
+                     }
+                     //else Debug.Log("no Ammo left");
 
-            }
+                 }
             
 
+            }
+            else
+            {
+                //Wenn nicht im Range
+                SetDestinationAttack(currentAttackingTargetTransform.position);
+                //hasCheckedDirectFire = false;
+            }
         }
-        else
-        {
-            SetDestinationAttack(currentAttackingTargetTransform.position);
-            //hasCheckedDirectFire = false;
-        }
-        
-        
+
     }
 
     bool DirectFireCheck(MissileWeapon weapon) //returns true if directFire is checked
@@ -290,10 +306,7 @@ public class UnitFighter : UnitMovement
 
                 transform.rotation = perfectAimRotation;
                 agent.updateRotation = true;
-            }
-
-
-            if (Quaternion.Angle(transform.rotation, wishRotation) > 0.1)  //1 dann zielt er etwas länger aber genauer  unnecessary jetzt wo die waffe sich sowieso zum gegner dreht
+            }else if (Quaternion.Angle(transform.rotation, wishRotation) > 0.1)  //1 dann zielt er etwas länger aber genauer  unnecessary jetzt wo die waffe sich sowieso zum gegner dreht
             {
                 _aimed = false;  //wishRotation vom Parent, wenn beide sich um mehr als 1 grad unterscheiden, dann haben wir uns noch nicht zum Gegner gedreht
             }
@@ -332,9 +345,9 @@ public class UnitFighter : UnitMovement
         Quaternion angleOfUnit = Quaternion.LookRotation((currentAttackingTargetTransform.position - transform.position));
         yTilt = Quaternion.Angle(angleOfWeapon, angleOfUnit);
        
-        Quaternion wishedRotation = Quaternion.Euler(transform.rotation.eulerAngles.x  + launchAngle, transform.rotation.eulerAngles.x - yTilt, transform.rotation.eulerAngles.z);
-        weapon.transform.localRotation = Quaternion.RotateTowards(weapon.transform.localRotation, wishedRotation, Time.deltaTime*weapon.aimSpeed);
-        if (weapon.transform.localRotation == wishedRotation) return true;
+        wishedWeaponRotation = Quaternion.Euler(transform.rotation.eulerAngles.x  + launchAngle, transform.rotation.eulerAngles.x - yTilt, transform.rotation.eulerAngles.z);
+        
+        if (weapon.transform.localRotation == wishedWeaponRotation) return true;
         return false;
     }
     
@@ -404,6 +417,8 @@ public class UnitFighter : UnitMovement
         weapon.isPreparingWeapon = false;
         weapon.weaponReadyToShoot = true;
     }
+
+   
 
     //TODO laster when we dont have enough amunition for a weapon we need to communicate this somehow
     private void OutOfAmmunition()
