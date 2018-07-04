@@ -722,6 +722,7 @@ MonoBehaviour:
   healthbar: {fileID: 114014626158274142}
   maxHealth: 50
   playerID: 1
+  moving: 0
   weapons:
   - {fileID: 0}
   - {fileID: 114686587849857824}

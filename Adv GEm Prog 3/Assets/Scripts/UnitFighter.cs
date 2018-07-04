@@ -9,7 +9,8 @@ public class UnitFighter : UnitMovement
     protected State state;
 
     //attackingEnemy
-    protected Vector3 currentAttackingTargetTransform;
+    protected Transform currentAttackingTargetTransform; //referenz auf den Transform des Objektes
+    protected Vector3 predictedAttackingPosition; //müssen mir continuerlich ändern, ist der Vektor den wir angreifen
     protected UnitMovement currentAttackingTarget;
     protected bool killedCurrentTarget = false;
 
@@ -29,6 +30,12 @@ public class UnitFighter : UnitMovement
     public float missileAimSkill;
     [Tooltip("if true, the unit will aim perfectly with out skillbased random rotation applied to weapon")]
     public bool perfectAim = false;
+
+    //for directFireCheckRaycast
+    bool automaticDirectFire = true;
+    //bool hasCheckedDirectFire = false; // so we make the raycast Check only once we stopped
+    bool raycastSendForThisAttack = false; //schickt vor jedem Schuss ein Raycast, wenn wir uns zum Gegner gedreht haben
+
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
@@ -75,7 +82,7 @@ public class UnitFighter : UnitMovement
             }
             else
             {
-                    currentAttackingTargetTransform = currentAttackingTarget.gameObject.transform.position;
+                    
                     killedCurrentTarget = false;
             
 
@@ -103,16 +110,17 @@ public class UnitFighter : UnitMovement
     public override void Attack(UnitMovement target)
     {
         currentAttackingTarget = target;
+        currentAttackingTargetTransform = currentAttackingTarget.gameObject.transform;
         state = State.Attacking;
     }
 
 
     public void MeleeAttack()
     {
-        SetDestinationAttack(currentAttackingTargetTransform);
+        SetDestinationAttack(currentAttackingTargetTransform.position);
         MeleeWeapon weapon = weapons[selectedWeapon] as MeleeWeapon; //cast Notwendig
 
-        if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < weapon.attackRange)
+        if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.attackRange)
         {
             agent.isStopped = true;
             if (Time.time > weapon.lastMeleeAttackTime + weapon.attackPause)
@@ -131,19 +139,45 @@ public class UnitFighter : UnitMovement
 
     private void MissileAttack()
     {
-        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig
+        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig //später das nur einmal machen
 
         //wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
-        if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable ) 
-        {
-            if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("LoadWeapon");
-        }
+       
+       if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot && !weapon.isPreparingWeapon)
+       {
+            TurnToDestination(currentAttackingTargetTransform.position);
+            StartCoroutine("LoadWeapon");
+            //Loading
+       }
 
-        if (Vector3.Distance(transform.position, currentAttackingTargetTransform) < weapon.missileRange) // wenn wir im Range sind
+       
+        if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) // wenn wir im Range sind
         {
+            //aiming
+            /*if (!hasCheckedDirectFire && automaticDirectFire && !moving) //checken wir nur wenn wir stehenbleiben
+            {
+                directFire = DirectFireCheck(weapon);
+                hasCheckedDirectFire = true;
+            }*/
             agent.isStopped = true;
-            aimed = (Aim(weapon));
-            
+            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
+            {
+                if (weapon.weaponReadyToShoot)
+                {
+                    aimed = (Aim(weapon));
+                    Debug.Log("loaded");
+                }
+                else
+                {
+                    TurnToDestination(currentAttackingTargetTransform.position);
+                }
+            }else aimed = (Aim(weapon));
+
+            if (Quaternion.Angle(transform.rotation, wishRotation) < 5 && !raycastSendForThisAttack)
+            {//if turnedToDestination
+                directFire = DirectFireCheck(weapon);
+                raycastSendForThisAttack = true;
+            }
 
             if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable) //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
             {
@@ -156,17 +190,37 @@ public class UnitFighter : UnitMovement
                 {
                     RandomRotator(weapon);
                     weapon.Shoot();
+                    raycastSendForThisAttack = false;
                 }
-                //else Debug.Log("no Ammo left");
+                    //else Debug.Log("no Ammo left");
 
             }
-               
-        }else
+            
+
+        }
+        else
         {
-            SetDestinationAttack(currentAttackingTargetTransform);
+            SetDestinationAttack(currentAttackingTargetTransform.position);
+            //hasCheckedDirectFire = false;
         }
         
         
+    }
+
+    bool DirectFireCheck(MissileWeapon weapon) //returns true if directFire is checked
+    {
+        bool isTheWayFree=false;
+        RaycastHit hit;
+        // Does the ray intersect any objects excluding the player layer
+        Vector3 direction = currentAttackingTargetTransform.position - weapon.transform.position;
+        direction.Normalize();
+        if (Physics.Raycast(weapon.transform.position + direction, direction, out hit, weapon.missileRange)) //hier mal layermask zur performanceOptimierung hinzufügen
+        {
+            Debug.Log(hit.collider.gameObject);
+            if (hit.collider.gameObject.GetComponent<UnitMovement>() == currentAttackingTarget) isTheWayFree = true;
+            else isTheWayFree = false;
+        }
+        return isTheWayFree;
     }
 
     bool Aim(MissileWeapon weapon) //returns true if aiming is finished -
@@ -174,29 +228,11 @@ public class UnitFighter : UnitMovement
         bool predictedFutureLocation = false;
         bool _aimed = false;
 
-    /*   ------LEave the Raycast out for now- too much Performance Drain, make it selectable by player maybe---
-    if (!predictedFutureLocation) {
-        //checked Raycast if we dont see enemy, directShoot = false  
-        //we want to hit the collider of our target
-        Debug.Log("aim");
-        RaycastHit hit;
-        // Does the ray intersect any objects excluding the player layer
-        Vector3 direction = currentAttackingTargetTransform - transform.position;
-        direction.Normalize();
-        if (Physics.Raycast(weapon.transform.position + direction, direction, out hit, weapon.missileRange)) //hier mal layermask zur performanceOptimierung hinzufügen
-        {
-            Debug.Log(hit.collider.gameObject);
-            if (hit.collider.gameObject.GetComponent<UnitMovement>() == currentAttackingTarget) directFire = true;
-            else directFire = false;
-        }
-    }
-    */
-
     //goto here
     AimAtPredicted:
 
 
-        Vector3 distDelta = currentAttackingTargetTransform - weapon.launchPoint.transform.position;
+        Vector3 distDelta = currentAttackingTargetTransform.position - weapon.launchPoint.transform.position;
         float launchAngle = GetLaunchAngle(
             weapon.missileLaunchVelocity,
             new Vector3(distDelta.x, 0f, distDelta.z).magnitude,          //Vector3.Distance(new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z), new Vector3(transform.position.x, 0f, transform.position.z)),
@@ -225,31 +261,31 @@ public class UnitFighter : UnitMovement
         float vY = weapon.missileLaunchVelocity * Mathf.Sin(launchAngle * (Mathf.PI / 180));
         //vY = 5f;
         float startH = weapon.launchPoint.transform.position.y;
-        float finalH = currentAttackingTargetTransform.y;
+        float finalH = currentAttackingTargetTransform.position.y;
         if (finalH < startH) {
             timeInAir = (vY + Mathf.Sqrt((float)(Mathf.Pow(vY, 2) - 4 * (0.5 * g) * (-(startH - finalH))))) / g;
         } else
         {
             //t = distanceX/initiallVeclocityXComponent
             float vX = weapon.missileLaunchVelocity * Mathf.Cos(launchAngle * (Mathf.PI / 180));
-            float distanceX = Vector3.Distance(currentAttackingTargetTransform, weapon.launchPoint.transform.position);
+            float distanceX = Vector3.Distance(currentAttackingTargetTransform.position, weapon.launchPoint.transform.position);
             timeInAir = distanceX / vX;
         }
 
         //change the currentAttackingTargetTransform based on this time , take his velocity times this time  //predict his future location
         if (!predictedFutureLocation) {
-            currentAttackingTargetTransform += currentAttackingTarget.agent.velocity * (timeInAir);
+            predictedAttackingPosition =  currentAttackingTargetTransform.position + currentAttackingTarget.agent.velocity * (timeInAir);
             predictedFutureLocation = true;
             goto AimAtPredicted;
         } else
         {
-            base.TurnToDestination(currentAttackingTargetTransform);
+            base.TurnToDestination(predictedAttackingPosition);
 
             if (Quaternion.Angle(transform.rotation, wishRotation) < 5)  //hier kommt ein anderer Drehcode, weil er sonst die letzten grad vie lzu langsam dreht
             {
                 agent.updateRotation = false;
                 Vector3 ourPosition = new Vector3(transform.position.x, 0f, transform.position.z);
-                Vector3 destinationPosition = new Vector3(currentAttackingTargetTransform.x, 0f, currentAttackingTargetTransform.z);
+                Vector3 destinationPosition = new Vector3(predictedAttackingPosition.x, 0f, predictedAttackingPosition.z);
                 Quaternion perfectAimRotation = Quaternion.LookRotation(destinationPosition - ourPosition);
 
                 transform.rotation = perfectAimRotation;
@@ -292,8 +328,8 @@ public class UnitFighter : UnitMovement
         launchAngle = -launchAngle; //cause localTransform goes in the other direction
         float yTilt = 0f; ; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c, now theres a etter way
        
-        Quaternion angleOfWeapon = Quaternion.LookRotation((currentAttackingTargetTransform - weapon.transform.position));
-        Quaternion angleOfUnit = Quaternion.LookRotation((currentAttackingTargetTransform - transform.position));
+        Quaternion angleOfWeapon = Quaternion.LookRotation((currentAttackingTargetTransform.position - weapon.transform.position));
+        Quaternion angleOfUnit = Quaternion.LookRotation((currentAttackingTargetTransform.position - transform.position));
         yTilt = Quaternion.Angle(angleOfWeapon, angleOfUnit);
        
         Quaternion wishedRotation = Quaternion.Euler(transform.rotation.eulerAngles.x  + launchAngle, transform.rotation.eulerAngles.x - yTilt, transform.rotation.eulerAngles.z);
