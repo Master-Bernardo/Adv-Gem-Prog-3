@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class UnitFighter : UnitMovement
 {
@@ -15,35 +16,40 @@ public class UnitFighter : UnitMovement
 
     //new values with Weapons:
     public Weapon[] weapons;
-    public int selectedWeapon = 1;
-    //if(weapons[0] is MissileWeapon) blablabla
+    public int selectedWeapon = 1; //if(weapons[0] is MissileWeapon) blablabla
+    MissileWeapon currentSelectedMissileWeapon;
+    MeleeWeapon currentSelectedMeleeWeapon;  //optimisation s owe dont always have to acess aray and cast
 
-    //For unit controlls missile
-    public bool directFire = true; //we can shoot in 2 angles, the units switch automaticly, but we can also do this manually
-    [Tooltip("wie groß kann der winkelfehler Sein bevor man sagt, man hat fertiggeaimt")]
+
+    #region For unit controlls missile
+
+    [Tooltip("for directFireCheckRaycast if true directFire will be set automaticly")]
+    private bool automaticDirectFire = true;
+    [Tooltip("we can shoot in 2 angles, the units switch automaticly, but we can also do this manually")]
+    public bool directFire = true;
+    //wie groß kann der winkelfehler Sein bevor man sagt, man hat fertiggeaimt")]
     private float aimTolerance;
     [Tooltip("is true falls der Krieger fertiggezielt hat")]
-    [SerializeField()]
-    private bool aimed = false;
+    public bool aimed = false;
     [Tooltip("wie gut kann der Krieger zielen")]
     public float missileAimSkill;
     [Tooltip("if true, the unit will aim perfectly with out skillbased random rotation applied to weapon")]
     public bool perfectAim = false;
 
-    private Quaternion wishedWeaponRotation = Quaternion.identity;
-    MissileWeapon currentSelectedMissileWeapon;
-    //bool missileAttack = false;
-    //bool missileAttackCouroutineRunning = false;
+    private bool justWentOutOfRange = false; //is true once when the target we were attacking went out of rangew - for the better enemy follow code
+    private Vector3 followingVector;
 
-    public bool missileAttackPrepared = false; //brauchen wir damit wir erst schießen nachdem wir zumindest einmal gezielt haben
 
-    //for directFireCheckRaycast
-    bool automaticDirectFire = true;
-    //bool hasCheckedDirectFire = false; // so we make the raycast Check only once we stopped
-    bool raycastSendForThisAttack = false; //schickt vor jedem Schuss ein Raycast, wenn wir uns zum Gegner gedreht haben
+    private Quaternion wishedWeaponRotation = Quaternion.identity;  //we always rotate on update to this rotation
 
-    public float missileAttackIntervall = 1f; //intervall every this we call the prepareMissileAttackMethod
+    //for optimalisation
+    private bool missileAttackPrepared = false; //brauchen wir damit wir erst schießen nachdem wir zumindest einmal gezielt haben
+    private bool raycastSendForThisAttack = false; //schickt vor jedem Schuss ein Raycast, wenn wir uns zum Gegner gedreht haben
+    [Tooltip("intervall every this we call the prepareMissileAttackMethod")]
+    public float missileAttackIntervall = 1f;
     private float nextMissileAttackTime;
+
+    #endregion
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
@@ -263,13 +269,34 @@ public class UnitFighter : UnitMovement
             }
             else
             {
-                //Wenn nicht im Range
-                SetDestinationAttack(currentAttackingTargetTransform.position);
+            //Wenn nicht im Range
+            SetDestinationAttack(currentAttackingTargetTransform.position);   
             //hasCheckedDirectFire = false;
-                missileAttackPrepared = false; //only in range
+            missileAttackPrepared = false; //only in range
             }
         //}
 
+    }
+
+    private void FollowEnemyIntoHisRange() //TODO another time or just if we are on a wall, we have a wall mode where our agent only moves on the wall
+    {
+        //is a point from me times the target agents velocitxy on a navmesh?
+        if(justWentOutOfRange) followingVector = currentAttackingTarget.agent.velocity;
+        Vector3 pointInRange = transform.position + followingVector;
+
+        SetDestinationAttack(currentAttackingTargetTransform.position);
+        float remainingDistance = agent.remainingDistance;
+        Debug.Log(remainingDistance);
+
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(pointInRange, out hit, 1f, NavMesh.AllAreas))
+        {
+            SetDestinationAttack(pointInRange);
+            Debug.Log("new " + agent.remainingDistance);
+            if(agent.remainingDistance>remainingDistance) SetDestinationAttack(currentAttackingTargetTransform.position);
+        }
+        //is this pouint in range? and is the path to his shorter than to the target agent?
+        //if yes set this point as new setination
     }
 
     bool DirectFireCheck(MissileWeapon weapon) //returns true if directFire is checked
@@ -393,14 +420,11 @@ public class UnitFighter : UnitMovement
         if (!perfectAim)
         {
             float step = 1 / missileAimSkill * 25; //5 ist grad um die wir rotieren
-            if (aimed)
-            {
-                weapon.transform.Rotate(
-                    Random.Range(-step, step),
-                    Random.Range(-step, step),
-                    Random.Range(-step, step));
+            weapon.transform.Rotate(
+                Random.Range(-step, step),
+                Random.Range(-step, step),
+                Random.Range(-step, step));
 
-            }
         }
     }
 
