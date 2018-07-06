@@ -237,7 +237,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1250859360701376}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.67, y: 0, z: -2.92}
+  m_LocalPosition: {x: -0.1, y: 0, z: -2.92}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4879592272550678}
@@ -731,9 +731,9 @@ MonoBehaviour:
   - {fileID: 114941579049687556}
   selectedWeapon: 1
   directFire: 0
-  aimed: 0
   missileAimSkill: 10
   perfectAim: 0
+  missileAttackIntervall: 0.5
   steadfast: 0
 --- !u!114 &114550010085192044
 MonoBehaviour:
@@ -774,7 +774,7 @@ MonoBehaviour:
   missileReloadTime: 3
   missileLaunchVelocity: 20
   missileRange: 0
-  aimSpeed: 500
+  aimSpeed: 3
   weaponReadyToShoot: 0
   isPreparingWeapon: 0
   launchPoint: {fileID: 1801317142491522}

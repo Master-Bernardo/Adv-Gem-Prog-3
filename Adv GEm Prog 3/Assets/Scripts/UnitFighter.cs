@@ -29,15 +29,13 @@ public class UnitFighter : UnitMovement
     public bool directFire = true;
     //wie groß kann der winkelfehler Sein bevor man sagt, man hat fertiggeaimt")]
     private float aimTolerance;
-    [Tooltip("is true falls der Krieger fertiggezielt hat")]
-    public bool aimed = false;
+    //[Tooltip("is true falls der Krieger fertiggezielt hat")]
+    //public bool aimed = false;
     [Tooltip("wie gut kann der Krieger zielen")]
     public float missileAimSkill;
     [Tooltip("if true, the unit will aim perfectly with out skillbased random rotation applied to weapon")]
     public bool perfectAim = false;
 
-    private bool justWentOutOfRange = false; //is true once when the target we were attacking went out of rangew - for the better enemy follow code
-    private Vector3 followingVector;
 
 
     private Quaternion wishedWeaponRotation = Quaternion.identity;  //we always rotate on update to this rotation
@@ -165,16 +163,15 @@ public class UnitFighter : UnitMovement
             //Debug.Log("prepareMissileAttack");
             nextMissileAttackTime = Time.time + missileAttackIntervall;
         }
-          
+
+        //set Weapon rotation
+        currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, currentSelectedMissileWeapon.aimSpeed);
+        //turn to target + predicted offset
+        base.TurnToDestination(currentAttackingTargetTransform.position + currentAttackingTarget.agent.velocity.normalized * predictedAttackingPositionOffset);
 
         // PrepareMissileAttack returns MissileAttackPrepared = true, always
         if (missileAttackPrepared) //we need to send it to false when we are not attacking the target anymore but when?
         {
-            //set Weapon rotation
-            currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, Time.deltaTime * currentSelectedMissileWeapon.aimSpeed);
-            //turn to target + predicted offset
-            base.TurnToDestination(currentAttackingTargetTransform.position + currentAttackingTarget.agent.velocity.normalized * predictedAttackingPositionOffset);
-
             //checken ob wir gezielt haben, dann Schuss
             if (HasAimed() && currentSelectedMissileWeapon.weaponReadyToShoot)
             {
@@ -186,6 +183,7 @@ public class UnitFighter : UnitMovement
                 }
                 //else Debug.Log("no Ammo left");
             }
+            else missileAttackPrepared = false;
         }
     }
 
@@ -216,17 +214,16 @@ public class UnitFighter : UnitMovement
  
     public void  PrepareMissileAttack()
     {
-        // yield return new WaitForSeconds(0.5f);
         //if (currentAttackingTargetTransform != null) { 
             MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig //später das nur einmal machen beim selectWeapon
 
             //wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
             if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot && !weapon.isPreparingWeapon)
-           {
+            {
                 TurnToDestination(currentAttackingTargetTransform.position);
                 StartCoroutine("LoadWeapon");
                 //Loading
-           }
+            }
 
        
             if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) // wenn wir im Range sind
@@ -278,7 +275,7 @@ public class UnitFighter : UnitMovement
 
     }
 
-    private void FollowEnemyIntoHisRange() //TODO another time or just if we are on a wall, we have a wall mode where our agent only moves on the wall
+   /* private void FollowEnemyIntoHisRange() //TODO another time or just if we are on a wall, we have a wall mode where our agent only moves on the wall
     {
         //is a point from me times the target agents velocitxy on a navmesh?
         if(justWentOutOfRange) followingVector = currentAttackingTarget.agent.velocity;
@@ -286,18 +283,18 @@ public class UnitFighter : UnitMovement
 
         SetDestinationAttack(currentAttackingTargetTransform.position);
         float remainingDistance = agent.remainingDistance;
-        Debug.Log(remainingDistance);
+        //Debug.Log(remainingDistance);
 
         NavMeshHit hit;
         if (NavMesh.SamplePosition(pointInRange, out hit, 1f, NavMesh.AllAreas))
         {
             SetDestinationAttack(pointInRange);
-            Debug.Log("new " + agent.remainingDistance);
+            //Debug.Log("new " + agent.remainingDistance);
             if(agent.remainingDistance>remainingDistance) SetDestinationAttack(currentAttackingTargetTransform.position);
         }
         //is this pouint in range? and is the path to his shorter than to the target agent?
         //if yes set this point as new setination
-    }
+    }*/
 
     bool DirectFireCheck(MissileWeapon weapon) //returns true if directFire is checked
     {
@@ -330,6 +327,7 @@ public class UnitFighter : UnitMovement
             distDelta.y,                                                  //currentAttackingTargetTransform.y - transform.position.y,
             directFire
         );
+        //Debug.Log(launchAngle);
 
         if (float.IsNaN(launchAngle))
         {

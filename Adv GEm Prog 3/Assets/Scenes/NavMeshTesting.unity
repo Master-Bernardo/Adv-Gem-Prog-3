@@ -428,21 +428,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 15
       objectReference: {fileID: 0}
-    - target: {fileID: 114686587849857824, guid: 12744bc13c74048408c17556b3ee736d,
-        type: 2}
-      propertyPath: neededAmmoType
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 114437701634308054, guid: 12744bc13c74048408c17556b3ee736d,
-        type: 2}
-      propertyPath: perfectAim
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 114437701634308054, guid: 12744bc13c74048408c17556b3ee736d,
-        type: 2}
-      propertyPath: missileAimSkill
-      value: 10
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 12744bc13c74048408c17556b3ee736d, type: 2}
   m_IsPrefabParent: 0
