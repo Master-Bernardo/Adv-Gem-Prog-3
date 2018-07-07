@@ -28,6 +28,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1038684699878150
+GameObject:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4049628770269518}
+  - component: {fileID: 114964964492957330}
+  m_Layer: 0
+  m_Name: Bolts
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1043432290090192
 GameObject:
   m_ObjectHideFlags: 1
@@ -38,7 +54,7 @@ GameObject:
   - component: {fileID: 4629393231861084}
   - component: {fileID: 114321874726005864}
   m_Layer: 0
-  m_Name: Bolts
+  m_Name: Arrows
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -77,7 +93,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1250859360701376
 GameObject:
   m_ObjectHideFlags: 0
@@ -133,7 +149,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!1 &1563451632702958
 GameObject:
   m_ObjectHideFlags: 0
@@ -185,6 +201,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!1 &1799023813140232
+GameObject:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 4780698748186546}
+  m_Layer: 0
+  m_Name: LaunchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
 --- !u!1 &1801317142491522
 GameObject:
   m_ObjectHideFlags: 1
@@ -216,6 +247,19 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
+--- !u!4 &4049628770269518
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1038684699878150}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4579702155085938}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4075290163867574
 Transform:
   m_ObjectHideFlags: 1
@@ -284,7 +328,7 @@ Transform:
   m_LocalPosition: {x: 0.422, y: 0.29, z: 0.355}
   m_LocalScale: {x: 0.22850148, y: 0.19435184, z: 1.1649902}
   m_Children:
-  - {fileID: 4557473706357862}
+  - {fileID: 4780698748186546}
   m_Father: {fileID: 4579702155085938}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -294,11 +338,11 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1801317142491522}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 4500575932278748}
+  m_Father: {fileID: 4623480787697818}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4579702155085938
@@ -314,6 +358,7 @@ Transform:
   - {fileID: 4500575932278748}
   - {fileID: 4623480787697818}
   - {fileID: 4591254612252840}
+  - {fileID: 4049628770269518}
   - {fileID: 4629393231861084}
   m_Father: {fileID: 4179299451052624}
   m_RootOrder: 3
@@ -340,7 +385,8 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.422, y: 0.29, z: 0.355}
   m_LocalScale: {x: 0.22850148, y: 0.19435184, z: 1.1649902}
-  m_Children: []
+  m_Children:
+  - {fileID: 4557473706357862}
   m_Father: {fileID: 4579702155085938}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -350,12 +396,12 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1043432290090192}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4579702155085938}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4735697148991886
 Transform:
@@ -368,6 +414,19 @@ Transform:
   m_LocalScale: {x: 0.24243407, y: 0.41, z: 0.05}
   m_Children: []
   m_Father: {fileID: 4075290163867574}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4780698748186546
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1799023813140232}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.7}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4500575932278748}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &4879592272550678
@@ -701,11 +760,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 0
   model: {fileID: 0}
+  oneHanded: 1
   damageType: 2
   currentAmmo: 0
   maxAmmo: 50
   velocityModifier: 0
-  ammoType: 1
+  ammoType: 0
 --- !u!114 &114437701634308054
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -723,17 +783,20 @@ MonoBehaviour:
   maxHealth: 50
   playerID: 1
   moving: 0
+  runSpeed: 7
+  normalSpeed: 3.5
+  run: 0
   weapons:
-  - {fileID: 0}
+  - {fileID: 114941579049687556}
   - {fileID: 114686587849857824}
   - {fileID: 114550010085192044}
-  - {fileID: 114941579049687556}
-  - {fileID: 114941579049687556}
-  selectedWeapon: 1
+  selectedWeapon: 0
   directFire: 0
   missileAimSkill: 10
   perfectAim: 0
   missileAttackIntervall: 0.5
+  meleeAttackSkill: 5
+  meleeDefenseSkill: 5
   steadfast: 0
 --- !u!114 &114550010085192044
 MonoBehaviour:
@@ -746,18 +809,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c18397d3b09cdac469dfb7143069ad2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 0
+  damage: 5
   model: {fileID: 0}
-  missileReloadTime: 2
+  oneHanded: 1
+  missileReloadTime: 1
   missileLaunchVelocity: 15
   missileRange: 0
   aimSpeed: 500
   weaponReadyToShoot: 0
   isPreparingWeapon: 0
-  launchPoint: {fileID: 0}
+  launchPoint: {fileID: 1801317142491522}
   missileWeaponType: 0
   neededAmmoType: 0
-  selectedAmmo: {fileID: 0}
+  selectedAmmo: {fileID: 114321874726005864}
 --- !u!114 &114686587849857824
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -771,16 +835,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damage: 5
   model: {fileID: 0}
+  oneHanded: 1
   missileReloadTime: 3
   missileLaunchVelocity: 20
   missileRange: 0
   aimSpeed: 3
   weaponReadyToShoot: 0
   isPreparingWeapon: 0
-  launchPoint: {fileID: 1801317142491522}
+  launchPoint: {fileID: 1799023813140232}
   missileWeaponType: 1
   neededAmmoType: 1
-  selectedAmmo: {fileID: 114321874726005864}
+  selectedAmmo: {fileID: 114964964492957330}
 --- !u!114 &114941579049687556
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -792,12 +857,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c78bd63a3a12ca48b426498763db1a6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 20
+  damage: 5
   model: {fileID: 0}
+  oneHanded: 1
   damageType: 0
-  attackPause: 0.5
+  attackSpeed: 100
   attackRange: 2
-  lastMeleeAttackTime: 0
+  meleeWeaponType: 0
+  meleeWeaponAttackType: 
+--- !u!114 &114964964492957330
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1038684699878150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77a1a85468ef17e44a841bec0a746bdf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 0
+  model: {fileID: 0}
+  oneHanded: 1
+  damageType: 2
+  currentAmmo: 0
+  maxAmmo: 50
+  velocityModifier: 0
+  ammoType: 1
 --- !u!136 &136170629380215792
 CapsuleCollider:
   m_ObjectHideFlags: 1
@@ -858,7 +944,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 1250859360701376}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 1
+  m_Radius: 0.7
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -870,4 +956,4 @@ NavMeshAgent:
   m_Height: 2
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 3

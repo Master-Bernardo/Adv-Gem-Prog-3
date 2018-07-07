@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour {
 
-    int damage;
+    int damageBonus;
     DamageType damageType;
     [Tooltip("a bullet is a ball, but a bold or arrow are not")]
     public bool ball = false;
@@ -21,7 +21,7 @@ public class Projectile : MonoBehaviour {
 
     public void SetFlyingParams(int damage, DamageType damageType, Vector3 velocity)
     {
-        this.damage = damage;
+        this.damageBonus = damage;
         this.damageType = damageType;
         rb.velocity = velocity;
         rb.isKinematic = false;
@@ -33,7 +33,7 @@ public class Projectile : MonoBehaviour {
         if(collision.gameObject.tag != "Projectile") { 
             if (collision.gameObject.tag == "Unit")
             {
-                collision.gameObject.GetComponent<UnitMovement>().GetDamage(damageType,damage);
+                collision.gameObject.GetComponent<UnitMovement>().GetDamage(damageType,damageBonus);
             }
 
             //Destroy(gameObject.GetComponent<Rigidbody>()); //so our projectiles will stick - for now

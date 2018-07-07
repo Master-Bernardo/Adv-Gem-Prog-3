@@ -13,9 +13,10 @@ public class PlayerController : MonoBehaviour {
     //for rect select and rmb hold rotate
     private Vector3 lmbPosition1;
     private Vector3 rmbPosition1;
-    private float timeLmbDown;
-    private float timeRmbDown;
+    private float timeLmbDown = 0f;
+    private float timeRmbDown = 0f;
 
+    bool doubleRmbClick = false; 
 
     private void Awake()
     {
@@ -24,6 +25,7 @@ public class PlayerController : MonoBehaviour {
   
     void Update()
     {
+        
         //left mouse button
         if (Input.GetMouseButtonDown(0))
         {
@@ -32,8 +34,17 @@ public class PlayerController : MonoBehaviour {
         }
         if (Input.GetMouseButtonDown(1))
         {
+            //for double rmb  
+            if (Time.time - timeRmbDown < 0.25)
+            {
+                //Debug.Log("doubleClick");
+                HandleRmbUp(true);
+                doubleRmbClick = true;
+            }
+            else doubleRmbClick = false;
             timeRmbDown = Time.time;
             rmbPosition1 = Input.mousePosition;
+            
         }
 
         if (Input.GetMouseButtonUp(0))  
@@ -43,7 +54,11 @@ public class PlayerController : MonoBehaviour {
 
         if (Input.GetMouseButtonUp(1) && Time.time <= timeRmbDown + 0.15)
         {
-            HandleRmbUp();
+            if (!doubleRmbClick)
+            {
+                HandleRmbUp(false);
+                //Debug.Log("single");
+            }
         }
 
         //when we release the mouse key after holding it
@@ -122,7 +137,7 @@ public class PlayerController : MonoBehaviour {
     }
 
     //attacks enemy units or sets destination if clicked on gorund or allied unit
-    private void HandleRmbUp()
+    private void HandleRmbUp(bool doubleClick)  //double click makes the units run
     {
         //Debug.Log("short select");
         //lmbDown = false;
@@ -141,6 +156,8 @@ public class PlayerController : MonoBehaviour {
                     {
                         if (uMov.playerID == playerID)
                         {
+                            if (doubleClick) uMov.run = true;
+                            else uMov.run = false;
                             uMov.SetDestination(hit.point);
                             //Debug.Log("hittetMyUnitSetDestination");
                         }
@@ -170,12 +187,15 @@ public class PlayerController : MonoBehaviour {
                 {
                     //if (uMov.playerID == playerID) TODO wieder einkommentieren
                     //{
+                        if (doubleClick) uMov.run = true;
+                        else uMov.run = false;
                         uMov.SetDestination(hit.point);
                     //}
                 }
             }
         }
     }
+
 
     //selects all units (enemies and allies) in the selection rectangle which we can draw while holding lmb down 
     private void  HandleLongLmbUp()

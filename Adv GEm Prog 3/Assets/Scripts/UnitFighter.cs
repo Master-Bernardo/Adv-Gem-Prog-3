@@ -49,6 +49,16 @@ public class UnitFighter : UnitMovement
 
     #endregion
 
+    #region for unit controlls melee
+    private float nextMeleeAttackTime = 0f;
+    [Range(0,100)]
+    public float meleeAttackSkill = 5f;
+    [Range(0, 100)]
+    public float meleeDefenseSkill = 5f;
+
+    bool meleeAttackDestinationSet = false; //so we dont call setDestination every frame
+    #endregion
+
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
     protected enum State
@@ -127,29 +137,56 @@ public class UnitFighter : UnitMovement
         //set this for our missileUnits
         missileAttackPrepared = false;
         nextMissileAttackTime = Time.time + Random.Range(0f, missileAttackIntervall);
+
+        //set this for meleeUnits
+        meleeAttackDestinationSet = false;
     }
 
 
-    public void MeleeAttack()  //waiting for Update //TODO
+    public void MeleeAttack()  
     {
-        SetDestinationAttack(currentAttackingTargetTransform.position);
-        MeleeWeapon weapon = weapons[selectedWeapon] as MeleeWeapon; //cast Notwendig
+        MeleeWeapon currentSelectedMeleeweapon = weapons[selectedWeapon] as MeleeWeapon; //cast Notwendig
 
-        if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.attackRange)
+        if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < currentSelectedMeleeweapon.attackRange)
         {
+            //Debug.Log("in Range");
+            TurnToDestination(currentAttackingTargetTransform.position);
+            meleeAttackDestinationSet = false;
             agent.isStopped = true;
-            if (Time.time > weapon.lastMeleeAttackTime + weapon.attackPause)
+            if (Time.time > nextMeleeAttackTime)
             {
-                MeleeHit(weapon.damageType,weapon.damage);
-                weapon.lastMeleeAttackTime = Time.time;
+                MeleeHit(currentSelectedMeleeweapon.damageType, currentSelectedMeleeweapon.damage);
+                nextMeleeAttackTime = Time.time + (currentSelectedMeleeweapon.attackSpeed/100) * (1 + Random.Range(0f,10/meleeAttackSkill)); // next attack time is based on the weapon speed and on the meleeAttackSkill
             }
+        }else if(!meleeAttackDestinationSet)
+        {
+            //Debug.Log("setting new target");
+            base.SetDestination(currentAttackingTargetTransform.position);
+            meleeAttackDestinationSet = true;
+            agent.isStopped = false;
+
         }
     }
 
-    private void MeleeHit(DamageType damageType, int damage)
+    private void MeleeHit(DamageType damageType, int damage) //waiting for Update //TODO add someNice Functions here
     {
         //Debug.Log("I attacked Melee");
         currentAttackingTarget.GetDamage(damageType, damage);
+    }
+                                                                                                //meleeWeapon type is class extending meleeWeapon which holds several meleeWeaponAttackTypess
+    public void HandleAttack(DamageType damageType, int damageAmount, MeleeAttackDirection attackDirection, MeleeWeapon.MeleeWeaponType meleeWeaponType, MeleeWeaponAttackType meleeWeaponAttackType) 
+    {
+        //if we have a meleeeWeapon selected we can defend ourselves and maybe change the nextAttackTime of us or our enemy(like a counterattack) based on our melleAttack and Defense skill
+
+        //after damage we get and ocassionaly the change in the nextAttackType of us our the attacker we will get a calculatet damage value, here we will change it based on armor
+        float calculatedDamage; 
+        
+        int finalDamage = 0; //=calculatet Damage - armor or smth
+
+        GetDamage(damageType,finalDamage);
+
+
+
     }
 
 
@@ -250,7 +287,7 @@ public class UnitFighter : UnitMovement
 
                 if (Quaternion.Angle(transform.rotation, wishRotation) < 5 && !raycastSendForThisAttack)
                 {//if turnedToDestination
-                    directFire = DirectFireCheck(weapon);
+                    if (automaticDirectFire) directFire = DirectFireCheck(weapon);
                     raycastSendForThisAttack = true;
                     //Debug.Log("send Raycast");
                 }

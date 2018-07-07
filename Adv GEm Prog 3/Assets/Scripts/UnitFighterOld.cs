@@ -123,10 +123,10 @@ public class UnitFighterOld : UnitMovement
         if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.attackRange)
         {
             agent.isStopped = true;
-            if (Time.time > weapon.lastMeleeAttackTime + weapon.attackPause)
+            //if (Time.time > weapon.lastMeleeAttackTime + weapon.attackPause)
             {
                 MeleeHit(weapon.damageType,weapon.damage);
-                weapon.lastMeleeAttackTime = Time.time;
+            //    weapon.lastMeleeAttackTime = Time.time;
             }
         }
     }

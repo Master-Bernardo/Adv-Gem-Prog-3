@@ -20,6 +20,11 @@ public class UnitMovement : MonoBehaviour {
     protected bool manualTurning = false;
     protected Quaternion wishRotation;
 
+    //for running
+    public float runSpeed;
+    public float normalSpeed;
+    public bool run = false; //if true we run, so our speed is 2 times bigger
+
     private void Start()
     {
         GameManager.Instance.AddUnitToGame(transform, playerID);
@@ -45,8 +50,10 @@ public class UnitMovement : MonoBehaviour {
         if (manualTurning)  //turns in the desired direction depending on angularSpeed
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, wishRotation, agent.angularSpeed*Time.deltaTime/30); ///10
+            //Debug.Log(wishRotation.eulerAngles);
             if (transform.rotation == wishRotation)
             {
+                //Debug.Log("transform.rotation == wishRotation");
                 manualTurning = false;
                 agent.updateRotation = true;
             }
@@ -70,6 +77,8 @@ public class UnitMovement : MonoBehaviour {
     public virtual void SetDestination(Vector3 destination)
     {
         TurnToDestination(destination);
+        if (run) agent.speed = runSpeed;
+        else agent.speed = normalSpeed;
         agent.SetDestination(destination);
     }
 

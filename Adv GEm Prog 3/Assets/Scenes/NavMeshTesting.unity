@@ -10999,13 +10999,13 @@ MonoBehaviour:
   pools:
   - tag: Arrow
     prefab: {fileID: 1825876340892556, guid: 44c3be20a1bff454381726df6ccb3eb8, type: 2}
-    size: 0
+    size: 200
   - tag: Bolt
     prefab: {fileID: 1825876340892556, guid: 44c3be20a1bff454381726df6ccb3eb8, type: 2}
     size: 200
   - tag: Bullet
     prefab: {fileID: 1825876340892556, guid: 44c3be20a1bff454381726df6ccb3eb8, type: 2}
-    size: 0
+    size: 200
 --- !u!4 &810179924
 Transform:
   m_ObjectHideFlags: 0
