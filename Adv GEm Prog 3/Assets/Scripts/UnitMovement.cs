@@ -25,6 +25,9 @@ public class UnitMovement : MonoBehaviour {
     public float normalSpeed;
     public bool run = false; //if true we run, so our speed is 2 times bigger
 
+    //for animation
+    public Animator animator;
+
     private void Start()
     {
         GameManager.Instance.AddUnitToGame(transform, playerID);
@@ -39,8 +42,13 @@ public class UnitMovement : MonoBehaviour {
             moving = true;
             manualTurning = false;
             agent.updateRotation = true;
+            animator.SetBool("isRunning", true);
         }
-        else moving = false;
+        else
+        {
+            moving = false;
+            animator.SetBool("isRunning", false);
+        }
 
         if (selected)
         {
@@ -79,6 +87,7 @@ public class UnitMovement : MonoBehaviour {
         TurnToDestination(destination);
         if (run) agent.speed = runSpeed;
         else agent.speed = normalSpeed;
+
         agent.SetDestination(destination);
     }
 
@@ -128,6 +137,11 @@ public class UnitMovement : MonoBehaviour {
     public virtual void Attack(UnitMovement target)
     {
         //Debug.Log("superclass Attack");
+    }
+
+    public virtual void HandleAttack(DamageType damageType, int damageAmount)
+    {
+        GetDamage(damageType, damageAmount);
     }
 
     public int getPlayerID()

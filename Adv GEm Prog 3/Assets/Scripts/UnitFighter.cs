@@ -24,7 +24,7 @@ public class UnitFighter : UnitMovement
     #region For unit controlls missile
 
     [Tooltip("for directFireCheckRaycast if true directFire will be set automaticly")]
-    private bool automaticDirectFire = true;
+    public bool automaticDirectFire = true;
     [Tooltip("we can shoot in 2 angles, the units switch automaticly, but we can also do this manually")]
     public bool directFire = true;
     //wie groß kann der winkelfehler Sein bevor man sagt, man hat fertiggeaimt")]
@@ -60,6 +60,8 @@ public class UnitFighter : UnitMovement
     #endregion
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
+
+    
 
     protected enum State
     {
@@ -170,11 +172,32 @@ public class UnitFighter : UnitMovement
 
     private void MeleeHit(DamageType damageType, int damage) //waiting for Update //TODO add someNice Functions here
     {
-        //Debug.Log("I attacked Melee");
-        currentAttackingTarget.GetDamage(damageType, damage);
+        //Debug.Log("I attacked Melee"); //later damage will be based on skill
+        currentAttackingTarget.HandleAttack(damageType, damage);
+        animator.SetTrigger("Attack");
+        Debug.Log("Attack");
     }
-                                                                                                //meleeWeapon type is class extending meleeWeapon which holds several meleeWeaponAttackTypess
-    public void HandleAttack(DamageType damageType, int damageAmount, MeleeAttackDirection attackDirection, MeleeWeapon.MeleeWeaponType meleeWeaponType, MeleeWeaponAttackType meleeWeaponAttackType) 
+        
+    public override void HandleAttack(DamageType damageType, int damageAmount)
+    {
+        //Defense option //normalerweise 5 % chance zu blocken, defense Skill erhöht diese chance
+        if (Random.Range(0f, 100f) > 95 - meleeDefenseSkill / 1.2f)
+        {
+            //defend, play defend animation
+            Debug.Log("Defend");
+            animator.SetTrigger("Defend");
+        }
+        else { 
+            GetDamage(damageType, damageAmount);
+            Debug.Log("getDamage");
+            //animator.SetTrigger("getDamage");
+        }
+    }
+
+  
+       
+                                                                                         //meleeWeapon type is class extending meleeWeapon which holds several meleeWeaponAttackTypess
+   /* public void HandleAttack(DamageType damageType, int damageAmount, MeleeAttackDirection attackDirection, MeleeWeapon.MeleeWeaponType meleeWeaponType, MeleeWeaponAttackType meleeWeaponAttackType) 
     {
         //if we have a meleeeWeapon selected we can defend ourselves and maybe change the nextAttackTime of us or our enemy(like a counterattack) based on our melleAttack and Defense skill
 
@@ -187,7 +210,7 @@ public class UnitFighter : UnitMovement
 
 
 
-    }
+    }*/
 
 
     #region MissileAttack & Aim
