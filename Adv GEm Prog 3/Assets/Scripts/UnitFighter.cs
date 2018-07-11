@@ -466,13 +466,13 @@ public class UnitFighter : UnitMovement
     private void SetWishedWeaponRotation(float launchAngle,MissileWeapon weapon)
     {
         launchAngle = -launchAngle; //cause localTransform goes in the other direction
-        float yTilt = 0f; ; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c, now theres a etter way
+        float xTilt = 0f; ; //we when the back is on the side of the Units it also needs to aim directly at the enemy - trigonometrie cos(a) = b/c, now theres a etter way
        
         Quaternion angleOfWeapon = Quaternion.LookRotation((currentAttackingTargetTransform.position - weapon.transform.position));
         Quaternion angleOfUnit = Quaternion.LookRotation((currentAttackingTargetTransform.position - transform.position));
-        yTilt = Quaternion.Angle(angleOfWeapon, angleOfUnit);
+        xTilt = Quaternion.Angle(angleOfWeapon, angleOfUnit);
        
-        wishedWeaponRotation = Quaternion.Euler(transform.rotation.eulerAngles.x  + launchAngle, transform.rotation.eulerAngles.x - yTilt, transform.rotation.eulerAngles.z);
+        wishedWeaponRotation = Quaternion.Euler(transform.rotation.eulerAngles.x + xTilt, transform.rotation.eulerAngles.x + launchAngle, transform.rotation.eulerAngles.z);
         
     }
 

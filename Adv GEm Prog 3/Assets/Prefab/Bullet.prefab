@@ -141,7 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57772b4a5e0f7c9488030b982395d99f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ball: 0
+  ball: 1
   rb: {fileID: 54472741377980938}
 --- !u!135 &135444929321445794
 SphereCollider:
