@@ -20,6 +20,10 @@ public class UnitFighter : UnitMovement
     MissileWeapon currentSelectedMissileWeapon;
     MeleeWeapon currentSelectedMeleeWeapon;  //optimisation s owe dont always have to acess aray and cast
 
+    //for drawing weapon
+    public GameObject rightHand; //here all our drawn wepons will be displayed
+    public GameObject weaponsHolster; //here all our undrawn weapons will be displayed
+
 
     #region For unit controlls missile
 
@@ -89,7 +93,12 @@ public class UnitFighter : UnitMovement
     void Awake()
     {
         state = State.Idle;
-        currentSelectedMissileWeapon = weapons[selectedWeapon] as MissileWeapon; // will be later in DrawWeapon
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+        drawWeapon(1); //TODO nur melee funkt erstmal
     }
 
     protected override void Update()
@@ -552,6 +561,28 @@ public class UnitFighter : UnitMovement
         }
 
     }
+
+    private void drawWeapon(int weapon)
+    {
+        if (weapons[selectedWeapon] != null)
+        {
+            hideWeapon();
+        }
+        selectedWeapon = weapon;
+        weapons[selectedWeapon].transform.SetParent(rightHand.transform);
+        weapons[selectedWeapon].transform.localPosition = new Vector3(0f, 0f, 0f);
+        weapons[selectedWeapon].transform.localRotation = Quaternion.identity;
+
+        if(weapons[selectedWeapon] is MissileWeapon) currentSelectedMissileWeapon = weapons[selectedWeapon] as MissileWeapon; // will be later in DrawWeapon
+    }
+
+    private void hideWeapon()
+    {
+        weapons[selectedWeapon].transform.SetParent(weaponsHolster.transform);
+        weapons[selectedWeapon].transform.localPosition = new Vector3(0f, 0f, 0f);
+        weapons[selectedWeapon].transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+    }
+
 
 
    

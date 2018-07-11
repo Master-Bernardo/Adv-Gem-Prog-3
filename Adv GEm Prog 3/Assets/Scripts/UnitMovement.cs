@@ -8,7 +8,7 @@ public class UnitMovement : MonoBehaviour {
     public GameObject selectedMarker;
     public UnitHealthbar healthbar;
 
-    private float currentHealth;
+    public float currentHealth;
     public int maxHealth = 50;
 
     public int playerID = 1;
@@ -28,7 +28,7 @@ public class UnitMovement : MonoBehaviour {
     //for animation
     public Animator animator;
 
-    private void Start()
+    protected virtual void Start()
     {
         GameManager.Instance.AddUnitToGame(transform, playerID);
         currentHealth = maxHealth;
