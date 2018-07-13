@@ -29,6 +29,9 @@ public class MissileWeapon : Weapon {
     public MissileAmmo.AmmoType neededAmmoType;
     public MissileAmmo selectedAmmo;
 
+    //for animation
+    public Animator missileWeaponAnimator;
+
 
     public enum MissileWeaponType
     {
@@ -45,7 +48,7 @@ public class MissileWeapon : Weapon {
     public void Shoot()
     {
         selectedAmmo.UseAmmo();
-
+        missileWeaponAnimator.SetTrigger("LooseShoot");
         GameObject projectile = ProjectilePooler.Instance.SpawnFromPool(selectedAmmo.ammoType.ToString(), launchPoint.transform.position, transform.rotation);
         //GameObject projectile = Instantiate(projectilePrefab, launchPoint.transform.position, transform.rotation);
 

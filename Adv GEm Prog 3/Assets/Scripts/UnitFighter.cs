@@ -25,6 +25,7 @@ public class UnitFighter : UnitMovement
     public GameObject weaponsHolster; //here all our undrawn weapons will be displayed
 
 
+
     #region For unit controlls missile
 
     [Tooltip("for directFireCheckRaycast if true directFire will be set automaticly")]
@@ -105,6 +106,8 @@ public class UnitFighter : UnitMovement
     {
         base.Update();
 
+        if(moving) animator.SetBool("isAiming", false);
+
         if (state == State.Attacking)
         {
             //checkIfTarget is Dead
@@ -121,6 +124,7 @@ public class UnitFighter : UnitMovement
                 }
                 else if (weapons[selectedWeapon] is MissileWeapon)
                 {
+                    if(!moving) animator.SetBool("isAiming", true);
                     MissileAttack();
                 }
             }
@@ -500,6 +504,7 @@ public class UnitFighter : UnitMovement
     IEnumerator LoadWeapon()
     {
         MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
+        weapon.missileWeaponAnimator.SetTrigger("DrawLoad");
         weapon.isPreparingWeapon = true;
         yield return new WaitForSeconds(weapon.missileReloadTime);
         weapon.isPreparingWeapon = false;
@@ -514,6 +519,7 @@ public class UnitFighter : UnitMovement
     IEnumerator WeaponSpannen()
     {
         MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
+        weapon.missileWeaponAnimator.SetTrigger("DrawLoad");
         weapon.isPreparingWeapon = true;
         yield return new WaitForSeconds(weapon.missileReloadTime);
         weapon.isPreparingWeapon = false;
@@ -573,14 +579,16 @@ public class UnitFighter : UnitMovement
         weapons[selectedWeapon].transform.localPosition = new Vector3(0f, 0f, 0f);
         weapons[selectedWeapon].transform.localRotation = Quaternion.identity;
 
-        if(weapons[selectedWeapon] is MissileWeapon) currentSelectedMissileWeapon = weapons[selectedWeapon] as MissileWeapon; // will be later in DrawWeapon
+
+
+        if (weapons[selectedWeapon] is MissileWeapon) currentSelectedMissileWeapon = weapons[selectedWeapon] as MissileWeapon; // will be later in DrawWeapon
     }
 
     private void hideWeapon()
     {
         weapons[selectedWeapon].transform.SetParent(weaponsHolster.transform);
         weapons[selectedWeapon].transform.localPosition = new Vector3(0f, 0f, 0f);
-        weapons[selectedWeapon].transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+        weapons[selectedWeapon].transform.localRotation = Quaternion.Euler(-90f, 0f, 90f);
     }
 
 

@@ -14,6 +14,7 @@ public class MissileAmmo : Weapon
     public float velocityModifier; //some projectiles are heavier than others and thus modify the velocity and the resulting range
     public AmmoType ammoType;
 
+
     public enum AmmoType
     {
         Arrow,
