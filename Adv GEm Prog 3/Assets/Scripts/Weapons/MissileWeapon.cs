@@ -12,7 +12,7 @@ public class MissileWeapon : Weapon {
     [Tooltip("Gets calculatet automaticly, based on velocity dont write anything in here")]
     public float missileRange = 0; 
 
-    [Tooltip("how fast does our warrior aim - 500 is quite good")]
+    [Tooltip("how fast does our warrior aim - 20 is quite good")]
     public float aimSpeed = 20;
     [Tooltip("dont touch, is weapon loaded - or is the bow drawn and ready to release?")]
     public bool weaponReadyToShoot = false; 
@@ -60,6 +60,32 @@ public class MissileWeapon : Weapon {
         weaponReadyToShoot = false; //nach dem Schuss müssen wir nochmal laden oder bogen spannen
 
     }
+
+    #region weapon load cycle
+    public void StartLoadOrDraw()
+    {
+        missileWeaponAnimator.SetTrigger("DrawLoad");
+        isPreparingWeapon = true;
+    }
+
+    public void FinishLoadOrDraw()
+    {
+        isPreparingWeapon = false;
+        weaponReadyToShoot = true;
+    }
+
+    public void AbortLoadOrDraw()
+    {
+        missileWeaponAnimator.SetTrigger("AbortLoad");
+        isPreparingWeapon = false;
+    }
+
+    public void RevertDraw() // also bogen runterziehen, wenn wir uns bewegen, selber effekt wie shoot nur ohne schießen
+    {
+        isPreparingWeapon = false;
+        weaponReadyToShoot = false;
+    }
+    #endregion
 
     public void SelectAmmo(MissileAmmo ammo)
     {

@@ -99,7 +99,7 @@ public class UnitFighter : UnitMovement
     protected override void Start()
     {
         base.Start();
-        drawWeapon(1); //TODO nur melee funkt erstmal
+        drawWeapon(2); //TODO nur melee funkt erstmal
     }
 
     protected override void Update()
@@ -124,24 +124,41 @@ public class UnitFighter : UnitMovement
                 }
                 else if (weapons[selectedWeapon] is MissileWeapon)
                 {
-                    if(!moving) animator.SetBool("isAiming", true);
+                    if(!moving) animator.SetBool("isAiming", true); // move this to missileAttack
                     MissileAttack();
                 }
             }
         }
-        else if (state == State.Idle)
+
+        #region automaticlyLoadWhileStanding
+        if (weapons[selectedWeapon] is MissileWeapon && currentSelectedMissileWeapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable)
         {
-            #region automaticlyLoadWhileStanding
-            if (!moving && weapons[selectedWeapon] is MissileWeapon)
+            if (!moving)
             {
-                MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
-                if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon && weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) StartCoroutine("LoadWeapon");
+                if (!currentSelectedMissileWeapon.weaponReadyToShoot && !currentSelectedMissileWeapon.isPreparingWeapon)
+                {
+                    StartCoroutine("LoadOrDrawWeapon");
+                }
             }
-            #endregion
-        }  
+            else
+            {
+                if (currentSelectedMissileWeapon.isPreparingWeapon)
+                {
+                    AbortDrawOrLoad();
+                }
+            }
+        }else if(weapons[selectedWeapon] is MissileWeapon && currentSelectedMissileWeapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable)
+        {
+            if (moving)
+            {
+                AbortDrawOrLoad();
+            }
+
+        }
+        #endregion
     }
 
-    
+
 
     public override void Attack(UnitMovement target)
     {
@@ -157,7 +174,7 @@ public class UnitFighter : UnitMovement
         meleeAttackDestinationSet = false;
     }
 
-
+    #region meleeAttack
     public void MeleeAttack()  
     {
         MeleeWeapon currentSelectedMeleeweapon = weapons[selectedWeapon] as MeleeWeapon; //cast Notwendig
@@ -207,24 +224,24 @@ public class UnitFighter : UnitMovement
         }
     }
 
-  
-       
-                                                                                         //meleeWeapon type is class extending meleeWeapon which holds several meleeWeaponAttackTypess
-   /* public void HandleAttack(DamageType damageType, int damageAmount, MeleeAttackDirection attackDirection, MeleeWeapon.MeleeWeaponType meleeWeaponType, MeleeWeaponAttackType meleeWeaponAttackType) 
-    {
-        //if we have a meleeeWeapon selected we can defend ourselves and maybe change the nextAttackTime of us or our enemy(like a counterattack) based on our melleAttack and Defense skill
-
-        //after damage we get and ocassionaly the change in the nextAttackType of us our the attacker we will get a calculatet damage value, here we will change it based on armor
-        float calculatedDamage; 
-        
-        int finalDamage = 0; //=calculatet Damage - armor or smth
-
-        GetDamage(damageType,finalDamage);
 
 
+    //meleeWeapon type is class extending meleeWeapon which holds several meleeWeaponAttackTypess
+    /* public void HandleAttack(DamageType damageType, int damageAmount, MeleeAttackDirection attackDirection, MeleeWeapon.MeleeWeaponType meleeWeaponType, MeleeWeaponAttackType meleeWeaponAttackType) 
+     {
+         //if we have a meleeeWeapon selected we can defend ourselves and maybe change the nextAttackTime of us or our enemy(like a counterattack) based on our melleAttack and Defense skill
 
-    }*/
+         //after damage we get and ocassionaly the change in the nextAttackType of us our the attacker we will get a calculatet damage value, here we will change it based on armor
+         float calculatedDamage; 
 
+         int finalDamage = 0; //=calculatet Damage - armor or smth
+
+         GetDamage(damageType,finalDamage);
+
+
+
+     }*/
+    #endregion
 
     #region MissileAttack & Aim
     void MissileAttack()
@@ -290,16 +307,8 @@ public class UnitFighter : UnitMovement
         //if (currentAttackingTargetTransform != null) { 
             MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig //später das nur einmal machen beim selectWeapon
 
-            //wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
-            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot && !weapon.isPreparingWeapon)
-            {
-                TurnToDestination(currentAttackingTargetTransform.position);
-                StartCoroutine("LoadWeapon");
-                //Loading
-            }
-
-       
-            if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) // wenn wir im Range sind
+            // wenn wir im Range sind
+            if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) 
             {
                 agent.isStopped = true;
                 if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
@@ -312,13 +321,14 @@ public class UnitFighter : UnitMovement
                     else
                     {
                         TurnToDestination(currentAttackingTargetTransform.position);
+                        //und lade - automatisch in update
                     }
                 }
-                else
+                else //also if drawable //sonst drawable Weapons können während des drawen zielen //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
                 {
+                    if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("LoadOrDrawWeapon");
                     Aim(weapon);
-                    //Debug.Log("aim aufgerufen");
-                }//sonst drawable Weapons können während des drawen zielen
+                }
 
 
                 if (Quaternion.Angle(transform.rotation, wishRotation) < 5 && !raycastSendForThisAttack)
@@ -328,22 +338,29 @@ public class UnitFighter : UnitMovement
                     //Debug.Log("send Raycast");
                 }
 
-                if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable) //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
-                {
-                    if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("WeaponSpannen");
-                }
-
-
-
                 missileAttackPrepared = true; //only in range
             }
+
+            //Wenn nicht im Range
             else
             {
-            //Wenn nicht im Range
-            SetDestinationAttack(currentAttackingTargetTransform.position);   
+                //wenn noch nicht geladen
+                if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot)
+                {
+                    agent.isStopped = true;
+                    if (!weapon.isPreparingWeapon) StartCoroutine("LoadOrDrawWeapon"); //starte laden neu, falls noch nicht der Fall
+                    //TurnToDestination(currentAttackingTargetTransform.position);
+            
+                }
+                else { 
+                    SetDestinationAttack(currentAttackingTargetTransform.position);
+                }
             //hasCheckedDirectFire = false;
             missileAttackPrepared = false; //only in range
-            }
+
+            // wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
+           
+        }
         //}
 
     }
@@ -500,30 +517,21 @@ public class UnitFighter : UnitMovement
     }
 
     //ändert den bool isReadyToShoot nach der drawTime
-
-    IEnumerator LoadWeapon()
+    //TODO Load Weapon das gleiche wie weapon Spannen?
+    IEnumerator LoadOrDrawWeapon()
     {
         MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
-        weapon.missileWeaponAnimator.SetTrigger("DrawLoad");
-        weapon.isPreparingWeapon = true;
+        //weapon.missileWeaponAnimator.SetTrigger("DrawLoad");
+        //weapon.isPreparingWeapon = true;
+        weapon.StartLoadOrDraw();
+        //Debug.Log("startLoad");
         yield return new WaitForSeconds(weapon.missileReloadTime);
-        weapon.isPreparingWeapon = false;
+        //weapon.isPreparingWeapon = false;
 
-        weapon.weaponReadyToShoot = true;
+        //weapon.weaponReadyToShoot = true;
         //Debug.Log("Waffe geladennnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn ");
-    }
-
-
-    //ändert den bool isReadyToShoot nach der loadTime
-
-    IEnumerator WeaponSpannen()
-    {
-        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
-        weapon.missileWeaponAnimator.SetTrigger("DrawLoad");
-        weapon.isPreparingWeapon = true;
-        yield return new WaitForSeconds(weapon.missileReloadTime);
-        weapon.isPreparingWeapon = false;
-        weapon.weaponReadyToShoot = true;
+        weapon.FinishLoadOrDraw();
+        //Debug.Log("finishLoad");
     }
 
     #endregion
@@ -549,23 +557,25 @@ public class UnitFighter : UnitMovement
         {
             state = State.Idle; 
         }
+
         if (weapons[selectedWeapon] is MissileWeapon)
         {
-
-            MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
-            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable)
-            {
-                //Debug.Log("stoppeWaffeLaden/Spannen ");
-                StopCoroutine("LoadWeapon");
-                weapon.isPreparingWeapon = false;
-            }
-            else if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable)
-            {
-                //StopCoroutine("WeaponSpannen");
-                weapon.isPreparingWeapon = false;
-            }
+            AbortDrawOrLoad();
         }
 
+    }
+
+    private void AbortDrawOrLoad()
+    {
+        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon;
+        if (weapon.isPreparingWeapon) {
+            StopCoroutine("LoadOrDrawWeapon");
+            weapon.AbortLoadOrDraw();
+        }
+        if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Drawable && weapon.weaponReadyToShoot)
+        {
+            weapon.RevertDraw();
+        }
     }
 
     private void drawWeapon(int weapon)
