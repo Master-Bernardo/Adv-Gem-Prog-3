@@ -41,6 +41,8 @@ public class UnitFighter : UnitMovement
     [Tooltip("if true, the unit will aim perfectly with out skillbased random rotation applied to weapon")]
     public bool perfectAim = false;
 
+    private bool inRange = false; //is our missile unit in range?
+
 
 
     private Quaternion wishedWeaponRotation = Quaternion.identity;  //we always rotate on update to this rotation
@@ -99,14 +101,12 @@ public class UnitFighter : UnitMovement
     protected override void Start()
     {
         base.Start();
-        drawWeapon(2); //TODO nur melee funkt erstmal
+        drawWeapon(1); //TODO nur melee funkt erstmal
     }
 
     protected override void Update()
     {
         base.Update();
-
-        if(moving) animator.SetBool("isAiming", false);
 
         if (state == State.Attacking)
         {
@@ -124,10 +124,14 @@ public class UnitFighter : UnitMovement
                 }
                 else if (weapons[selectedWeapon] is MissileWeapon)
                 {
-                    if(!moving) animator.SetBool("isAiming", true); // move this to missileAttack
+                    if (inRange) animator.SetBool("isAiming", true); // move this to missileAttack
+                    else animator.SetBool("isAiming", false);
                     MissileAttack();
                 }
             }
+        }else if(state == State.Idle)
+        {
+            animator.SetBool("isAiming", false);
         }
 
         #region automaticlyLoadWhileStanding
@@ -254,26 +258,28 @@ public class UnitFighter : UnitMovement
             nextMissileAttackTime = Time.time + missileAttackIntervall;
         }
 
-        //set Weapon rotation
-        currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, currentSelectedMissileWeapon.aimSpeed);
-        //turn to target + predicted offset
-        base.TurnToDestination(currentAttackingTargetTransform.position + currentAttackingTarget.agent.velocity.normalized * predictedAttackingPositionOffset);
+        if (inRange) { 
+            //set Weapon rotation
+            currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, currentSelectedMissileWeapon.aimSpeed);
+            //turn to target + predicted offset
+            base.TurnToDestination(currentAttackingTargetTransform.position + currentAttackingTarget.agent.velocity.normalized * predictedAttackingPositionOffset);
 
-        // PrepareMissileAttack returns MissileAttackPrepared = true, always
-        if (missileAttackPrepared) //we need to send it to false when we are not attacking the target anymore but when?
-        {
-            //checken ob wir gezielt haben, dann Schuss
-            if (HasAimed() && currentSelectedMissileWeapon.weaponReadyToShoot)
+            // PrepareMissileAttack returns MissileAttackPrepared = true, always
+            if (missileAttackPrepared) //we need to send it to false when we are not attacking the target anymore but when?
             {
-                if (currentSelectedMissileWeapon.AmmoLeft())
+                //checken ob wir gezielt haben, dann Schuss
+                if (HasAimed() && currentSelectedMissileWeapon.weaponReadyToShoot)
                 {
-                    RandomRotator(currentSelectedMissileWeapon);
-                    currentSelectedMissileWeapon.Shoot();
-                    raycastSendForThisAttack = false;
+                    if (currentSelectedMissileWeapon.AmmoLeft())
+                    {
+                        RandomRotator(currentSelectedMissileWeapon);
+                        currentSelectedMissileWeapon.Shoot();
+                        raycastSendForThisAttack = false;
+                    }
+                    //else Debug.Log("no Ammo left");
                 }
-                //else Debug.Log("no Ammo left");
+                else missileAttackPrepared = false;
             }
-            else missileAttackPrepared = false;
         }
     }
 
@@ -301,90 +307,95 @@ public class UnitFighter : UnitMovement
         
     }
 
- 
-    public void  PrepareMissileAttack()
+
+    public void PrepareMissileAttack()
     {
         //if (currentAttackingTargetTransform != null) { 
-            MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig //später das nur einmal machen beim selectWeapon
+        MissileWeapon weapon = weapons[selectedWeapon] as MissileWeapon; //cast Notwendig //später das nur einmal machen beim selectWeapon
 
-            // wenn wir im Range sind
-            if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) 
+        //set Range
+        if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < weapon.missileRange) inRange = true;
+        else inRange = false;
+
+        // wenn wir im Range sind
+        if (inRange)
+        {
+            agent.isStopped = true;
+            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
             {
-                agent.isStopped = true;
-                if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
+                if (weapon.weaponReadyToShoot)
                 {
-                    if (weapon.weaponReadyToShoot)
-                    {
-                        Aim(weapon);
-                        //Debug.Log("aim aufgerufen");
-                    }
-                    else
-                    {
-                        TurnToDestination(currentAttackingTargetTransform.position);
-                        //und lade - automatisch in update
-                    }
-                }
-                else //also if drawable //sonst drawable Weapons können während des drawen zielen //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
-                {
-                    if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("LoadOrDrawWeapon");
                     Aim(weapon);
+                    //Debug.Log("aim aufgerufen");
                 }
-
-
-                if (Quaternion.Angle(transform.rotation, wishRotation) < 5 && !raycastSendForThisAttack)
-                {//if turnedToDestination
-                    if (automaticDirectFire) directFire = DirectFireCheck(weapon);
-                    raycastSendForThisAttack = true;
-                    //Debug.Log("send Raycast");
+                else
+                {
+                    TurnToDestination(currentAttackingTargetTransform.position);
+                    //und lade - automatisch in update
                 }
-
-                missileAttackPrepared = true; //only in range
+            }
+            else //also if drawable //sonst drawable Weapons können während des drawen zielen //den bogen/Wurfspeer spannen wir erst wenn wir in range sind
+            {
+                if (!weapon.weaponReadyToShoot && !weapon.isPreparingWeapon) StartCoroutine("LoadOrDrawWeapon");
+                Aim(weapon);
             }
 
-            //Wenn nicht im Range
+
+            if (Quaternion.Angle(transform.rotation, wishRotation) < 5 && !raycastSendForThisAttack)
+            {//if turnedToDestination
+                if (automaticDirectFire) directFire = DirectFireCheck(weapon);
+                raycastSendForThisAttack = true;
+                //Debug.Log("send Raycast");
+            }
+
+            missileAttackPrepared = true; //only in range
+        }
+
+        //Wenn nicht im Range
+        else
+        {
+            //wenn noch nicht geladen
+            if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot)
+            {
+                agent.isStopped = true;
+                if (!weapon.isPreparingWeapon) StartCoroutine("LoadOrDrawWeapon"); //starte laden neu, falls noch nicht der Fall
+                                                                                   //TurnToDestination(currentAttackingTargetTransform.position);
+
+            }
             else
             {
-                //wenn noch nicht geladen
-                if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot)
-                {
-                    agent.isStopped = true;
-                    if (!weapon.isPreparingWeapon) StartCoroutine("LoadOrDrawWeapon"); //starte laden neu, falls noch nicht der Fall
-                    //TurnToDestination(currentAttackingTargetTransform.position);
-            
-                }
-                else { 
-                    SetDestinationAttack(currentAttackingTargetTransform.position);
-                }
+                SetDestinationAttack(currentAttackingTargetTransform.position);
+            }
             //hasCheckedDirectFire = false;
             missileAttackPrepared = false; //only in range
 
             // wenn laudable - dann lade hier falls nicht geladen ist, wir laden schon bevor wir in Range sind
-           
+
         }
         //}
 
     }
 
-   /* private void FollowEnemyIntoHisRange() //TODO another time or just if we are on a wall, we have a wall mode where our agent only moves on the wall
-    {
-        //is a point from me times the target agents velocitxy on a navmesh?
-        if(justWentOutOfRange) followingVector = currentAttackingTarget.agent.velocity;
-        Vector3 pointInRange = transform.position + followingVector;
+    /* private void FollowEnemyIntoHisRange() //TODO another time or just if we are on a wall, we have a wall mode where our agent only moves on the wall
+     {
+         //is a point from me times the target agents velocitxy on a navmesh?
+         if(justWentOutOfRange) followingVector = currentAttackingTarget.agent.velocity;
+         Vector3 pointInRange = transform.position + followingVector;
 
-        SetDestinationAttack(currentAttackingTargetTransform.position);
-        float remainingDistance = agent.remainingDistance;
-        //Debug.Log(remainingDistance);
+         SetDestinationAttack(currentAttackingTargetTransform.position);
+         float remainingDistance = agent.remainingDistance;
+         //Debug.Log(remainingDistance);
 
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(pointInRange, out hit, 1f, NavMesh.AllAreas))
-        {
-            SetDestinationAttack(pointInRange);
-            //Debug.Log("new " + agent.remainingDistance);
-            if(agent.remainingDistance>remainingDistance) SetDestinationAttack(currentAttackingTargetTransform.position);
-        }
-        //is this pouint in range? and is the path to his shorter than to the target agent?
-        //if yes set this point as new setination
-    }*/
+         NavMeshHit hit;
+         if (NavMesh.SamplePosition(pointInRange, out hit, 1f, NavMesh.AllAreas))
+         {
+             SetDestinationAttack(pointInRange);
+             //Debug.Log("new " + agent.remainingDistance);
+             if(agent.remainingDistance>remainingDistance) SetDestinationAttack(currentAttackingTargetTransform.position);
+         }
+         //is this pouint in range? and is the path to his shorter than to the target agent?
+         //if yes set this point as new setination
+     }*/
 
     bool DirectFireCheck(MissileWeapon weapon) //returns true if directFire is checked
     {

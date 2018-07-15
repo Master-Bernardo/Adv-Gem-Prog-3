@@ -2270,7 +2270,7 @@ MonoBehaviour:
   armorPiercing: 0
   model: {fileID: 0}
   oneHanded: 1
-  missileReloadTime: 3
+  missileReloadTime: 5
   missileLaunchVelocity: 20
   missileRange: 0
   aimSpeed: 3

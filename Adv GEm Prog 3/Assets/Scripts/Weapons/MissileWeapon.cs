@@ -82,6 +82,7 @@ public class MissileWeapon : Weapon {
 
     public void RevertDraw() // also bogen runterziehen, wenn wir uns bewegen, selber effekt wie shoot nur ohne schießen
     {
+        missileWeaponAnimator.SetTrigger("AbortLoad");
         isPreparingWeapon = false;
         weaponReadyToShoot = false;
     }
