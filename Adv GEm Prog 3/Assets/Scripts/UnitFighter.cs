@@ -46,7 +46,7 @@ public class UnitFighter : UnitMovement
     public bool followEnemyMissile = false;
     public bool enemyWasInRange = false; //sorgt dafür das wir zum gegner hingehen falls, wir grade den Angraffsbefehl gegeben haben, wir gehen aber nicht zum gegner hin, wenn dieser flieht, dann brechen wir angriff ab
 
-
+    public bool fireAtWill = true; // if true our units shoots at everything in range
 
     private Quaternion wishedWeaponRotation = Quaternion.identity;  //we always rotate on update to this rotation
 
@@ -106,7 +106,7 @@ public class UnitFighter : UnitMovement
     protected override void Start()
     {
         base.Start();
-        drawWeapon(1); //TODO nur melee funkt erstmal
+        drawWeapon(0); //TODO nur melee funkt erstmal
     }
 
     protected override void Update()
@@ -137,6 +137,16 @@ public class UnitFighter : UnitMovement
         }else if(state == State.Idle)
         {
             animator.SetBool("isAiming", false);
+            
+            if(currentSelectedMissileWeapon!=null) //die ist nur != null wenn diese selected ist
+            //check if we can shoot at smbody
+            if (fireAtWill && !agent.pathPending && !agent.hasPath) {  //also nur wenn er stillsteht
+                UnitMovement nearestEnemy = GetNearestTargetInRange(currentSelectedMissileWeapon.missileRange);
+                if (nearestEnemy != null) Attack(nearestEnemy);
+            }
+
+            //check if we can attack somebody near us
+
         }
 
         #region automaticlyLoadWhileStanding
@@ -167,6 +177,41 @@ public class UnitFighter : UnitMovement
         #endregion
     }
 
+    #region Checks if we can shhot or hit somebody near us
+    private UnitMovement GetNearestTargetInRange(float range)
+    {
+        UnitMovement nearestTarget = null;
+        float nearestDistance = Mathf.Infinity;
+        if (playerID == 1)
+        {
+            Collider[] enemyUnitsInRange = Physics.OverlapSphere(transform.position, range, 1<<13);
+            foreach(Collider collider in enemyUnitsInRange)
+            {
+                float thisDistance = Vector3.Distance(collider.transform.position, transform.position);
+                if (thisDistance < nearestDistance)
+                {
+                    nearestDistance = thisDistance;
+                    nearestTarget = collider.GetComponent<UnitMovement>();
+                }
+            }
+        }
+        else if(playerID == 2)
+        {
+            Collider[] enemyUnitsInRange = Physics.OverlapSphere(transform.position, range, 1<<12);
+            foreach(Collider collider in enemyUnitsInRange)
+            {
+                float thisDistance = Vector3.Distance(collider.transform.position, transform.position);
+                if (thisDistance < nearestDistance)
+                {
+                    nearestDistance = thisDistance;
+                    nearestTarget = collider.GetComponent<UnitMovement>();
+                }
+            }
+        }
+       
+        return nearestTarget;
+    }
+    #endregion
 
 
     public override void Attack(UnitMovement target)
@@ -622,6 +667,9 @@ public class UnitFighter : UnitMovement
 
 
         if (weapons[selectedWeapon] is MissileWeapon) currentSelectedMissileWeapon = weapons[selectedWeapon] as MissileWeapon; // will be later in DrawWeapon
+        else  currentSelectedMissileWeapon = null; 
+        if (weapons[selectedWeapon] is MeleeWeapon) currentSelectedMeleeWeapon = weapons[selectedWeapon] as MeleeWeapon;
+        else currentSelectedMeleeWeapon = null;
     }
 
     private void hideWeapon()

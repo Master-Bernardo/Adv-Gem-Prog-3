@@ -41,7 +41,7 @@ public class UnitMovement : MonoBehaviour {
 
     protected virtual void Update()
     {
-        if (agent.velocity.magnitude > 1)
+        if (agent.velocity.magnitude > 0.1)
         {
             moving = true;
             manualTurning = false;
@@ -113,7 +113,7 @@ public class UnitMovement : MonoBehaviour {
         else agent.speed = normalSpeed;
 
         rotationOnArrival = LookRotation;
-        Debug.Log(rotationOnArrival);
+        //Debug.Log(rotationOnArrival);
         rotateOnArrival = true;
         agent.SetDestination(destination);
     }
