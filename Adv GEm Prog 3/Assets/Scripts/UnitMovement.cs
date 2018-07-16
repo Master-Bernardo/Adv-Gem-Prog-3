@@ -76,7 +76,7 @@ public class UnitMovement : MonoBehaviour {
             // if arrived
             if (!agent.pathPending && !agent.hasPath) { 
                 //Debug.Log("arrived");
-                TurnToDestination(rotationOnArrival);
+                FaceDirection(rotationOnArrival);
                 rotateOnArrival = false;
             }
         }   
@@ -97,7 +97,7 @@ public class UnitMovement : MonoBehaviour {
     }
     public virtual void SetDestination(Vector3 destination)
     {
-        TurnToDestination(destination);
+        TurnToPosition(destination);
         if (run) agent.speed = runSpeed;
         else agent.speed = normalSpeed;
 
@@ -107,17 +107,18 @@ public class UnitMovement : MonoBehaviour {
 
     public virtual void SetDestination(Vector3 destination, Vector3 LookRotation)
     {
-        TurnToDestination(destination);
+        TurnToPosition(destination);
 
         if (run) agent.speed = runSpeed;
         else agent.speed = normalSpeed;
 
         rotationOnArrival = LookRotation;
+        Debug.Log(rotationOnArrival);
         rotateOnArrival = true;
         agent.SetDestination(destination);
     }
 
-    protected virtual void TurnToDestination(Vector3 destination)
+    protected virtual void TurnToPosition(Vector3 destination)
     {
         manualTurning = true;
         agent.updateRotation = false;

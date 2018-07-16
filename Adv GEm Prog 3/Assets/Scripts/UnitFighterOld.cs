@@ -145,7 +145,7 @@ public class UnitFighterOld : UnitMovement
        
        if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable && !weapon.weaponReadyToShoot && !weapon.isPreparingWeapon)
        {
-            TurnToDestination(currentAttackingTargetTransform.position);
+            TurnToPosition(currentAttackingTargetTransform.position);
             StartCoroutine("LoadWeapon");
             //Loading
        }
@@ -169,7 +169,7 @@ public class UnitFighterOld : UnitMovement
                 }
                 else
                 {
-                    TurnToDestination(currentAttackingTargetTransform.position);
+                    TurnToPosition(currentAttackingTargetTransform.position);
                 }
             }else aimed = (Aim(weapon));
 
@@ -279,7 +279,7 @@ public class UnitFighterOld : UnitMovement
             goto AimAtPredicted;
         } else
         {
-            base.TurnToDestination(predictedAttackingPosition);
+            base.TurnToPosition(predictedAttackingPosition);
 
             if (Quaternion.Angle(transform.rotation, wishRotation) < 5)  //hier kommt ein anderer Drehcode, weil er sonst die letzten grad vie lzu langsam dreht
             {

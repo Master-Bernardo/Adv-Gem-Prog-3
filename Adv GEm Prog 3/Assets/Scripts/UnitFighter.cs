@@ -186,7 +186,7 @@ public class UnitFighter : UnitMovement
         if (Vector3.Distance(transform.position, currentAttackingTargetTransform.position) < currentSelectedMeleeweapon.attackRange)
         {
             //Debug.Log("in Range");
-            TurnToDestination(currentAttackingTargetTransform.position);
+            TurnToPosition(currentAttackingTargetTransform.position);
             meleeAttackDestinationSet = false;
             agent.isStopped = true;
             if (Time.time > nextMeleeAttackTime)
@@ -262,7 +262,7 @@ public class UnitFighter : UnitMovement
             //set Weapon rotation
             currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, currentSelectedMissileWeapon.aimSpeed);
             //turn to target + predicted offset
-            base.TurnToDestination(currentAttackingTargetTransform.position + currentAttackingTarget.agent.velocity.normalized * predictedAttackingPositionOffset);
+            base.TurnToPosition(currentAttackingTargetTransform.position + currentAttackingTarget.agent.velocity.normalized * predictedAttackingPositionOffset);
 
             // PrepareMissileAttack returns MissileAttackPrepared = true, always
             if (missileAttackPrepared) //we need to send it to false when we are not attacking the target anymore but when?
@@ -330,7 +330,7 @@ public class UnitFighter : UnitMovement
                 }
                 else
                 {
-                    TurnToDestination(currentAttackingTargetTransform.position);
+                    TurnToPosition(currentAttackingTargetTransform.position);
                     //und lade - automatisch in update
                 }
             }

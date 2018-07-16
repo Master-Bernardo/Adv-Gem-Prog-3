@@ -50,7 +50,7 @@ public class MissileUnitProto : MeleeUnitProto {
 
     void Aim(UnitMovement target)
     {
-        TurnToDestination(target.gameObject.transform.position);
+        TurnToPosition(target.gameObject.transform.position);
         //SetDestination();
         //Aim igher
         //adjust force, set currentMissile FOrce

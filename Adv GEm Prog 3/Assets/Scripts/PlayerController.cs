@@ -19,9 +19,12 @@ public class PlayerController : MonoBehaviour {
 
     bool doubleRmbClick = false;
 
+    [SerializeField]
+    private Formation formation;
+
     private void Awake()
     {
-        selectionGroup = new SelectionGroup();
+        selectionGroup = new SelectionGroup(formation);
     }
 
     void Update()
@@ -141,20 +144,15 @@ public class PlayerController : MonoBehaviour {
                 //Debug.Log("hittetMyUnit");
                 if (selectionGroup.Count() != 0)
                 {
-                    foreach (UnitMovement uMov in selectionGroup.GetSet())
-                    {
-                        if (uMov.playerID == playerID)
-                        {
-                            if (doubleClick) uMov.run = true;
-                            else uMov.run = false;
-                            uMov.SetDestination(hit.point);
-                            //Debug.Log("hittetMyUnitSetDestination");
-                        }
-                    }
+                    bool run;
+                    if (doubleClick) run = true;
+                    else run = false;
+                    selectionGroup.SendTroopsToFormation(hit.point + Vector3.up * 0.1f, new Vector3(hit.point.x - selectionGroup.GetMiddleInWorldCoordinates().x, 0f, hit.point.z - selectionGroup.GetMiddleInWorldCoordinates().z), run);
                 }
             }
             else if (hit.collider.gameObject.GetComponent<UnitMovement>().getPlayerID() == 2)
             {
+                //TODO Add an attack in Formation?
                 //Debug.Log("hittetEnemyUnit");
                 if (selectionGroup.Count() != 0)
                 {
@@ -172,15 +170,10 @@ public class PlayerController : MonoBehaviour {
         {
             if (selectionGroup.Count() != 0)
             {
-                foreach (UnitMovement uMov in selectionGroup.GetSet())
-                {
-                    //if (uMov.playerID == playerID) TODO wieder einkommentieren
-                    //{
-                        if (doubleClick) uMov.run = true;
-                        else uMov.run = false;
-                        uMov.SetDestination(hit.point);
-                    //}
-                }
+                bool run;
+                if (doubleClick) run = true;
+                else run = false;
+                selectionGroup.SendTroopsToFormation(hit.point + Vector3.up*0.1f, new Vector3(hit.point.x - selectionGroup.GetMiddleInWorldCoordinates().x,0f, hit.point.z - selectionGroup.GetMiddleInWorldCoordinates().z), run);
             }
         }
     }
@@ -246,16 +239,11 @@ public class PlayerController : MonoBehaviour {
             Vector3 rmbPosition2 = Input.mousePosition;
 
             Vector3 direction = new Vector3(rmbPosition2.x - rmbPosition1.x, 0f, rmbPosition2.y - rmbPosition1.y);
-            foreach (UnitMovement uMov in selectionGroup.GetSet())
+
+            if (selectionGroup.Count() != 0)
             {
-                if (uMov.playerID == playerID)
-                {
-                    //uMov.FaceDirection(direction);
-                    uMov.SetDestination(rmbPosition1WorldSpace, direction);
-                    //Debug.Log(rmbPosition1 + " " + rmbPosition2);
-                }
+                selectionGroup.SendTroopsToFormation(hit.point + Vector3.up * 0.1f, direction, false);
             }
-            //Debug.Log(direction);
         }
     }
 
