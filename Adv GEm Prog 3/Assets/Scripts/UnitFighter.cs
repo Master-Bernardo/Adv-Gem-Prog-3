@@ -106,7 +106,7 @@ public class UnitFighter : UnitMovement
     protected override void Start()
     {
         base.Start();
-        drawWeapon(0); //TODO nur melee funkt erstmal
+        drawWeapon(2); //TODO nur melee funkt erstmal
     }
 
     protected override void Update()
