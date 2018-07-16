@@ -28,6 +28,10 @@ public class UnitMovement : MonoBehaviour {
     //for animation
     public Animator animator;
 
+    //für ein Rotieren nach dem ankommen
+    bool rotateOnArrival = false;
+    Vector3 rotationOnArrival = Vector3.zero;
+
     protected virtual void Start()
     {
         GameManager.Instance.AddUnitToGame(transform, playerID);
@@ -66,7 +70,16 @@ public class UnitMovement : MonoBehaviour {
                 agent.updateRotation = true;
             }
         }
-        
+
+        if (rotateOnArrival)
+        {
+            // if arrived
+            if (!agent.pathPending && !agent.hasPath) { 
+                //Debug.Log("arrived");
+                TurnToDestination(rotationOnArrival);
+                rotateOnArrival = false;
+            }
+        }   
     }
 
     public void Select()
@@ -88,6 +101,19 @@ public class UnitMovement : MonoBehaviour {
         if (run) agent.speed = runSpeed;
         else agent.speed = normalSpeed;
 
+        rotateOnArrival = false;
+        agent.SetDestination(destination);
+    }
+
+    public virtual void SetDestination(Vector3 destination, Vector3 LookRotation)
+    {
+        TurnToDestination(destination);
+
+        if (run) agent.speed = runSpeed;
+        else agent.speed = normalSpeed;
+
+        rotationOnArrival = LookRotation;
+        rotateOnArrival = true;
         agent.SetDestination(destination);
     }
 

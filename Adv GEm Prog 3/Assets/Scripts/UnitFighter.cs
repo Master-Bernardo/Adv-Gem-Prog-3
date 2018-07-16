@@ -561,6 +561,11 @@ public class UnitFighter : UnitMovement
         agent.isStopped = false;
     }
 
+    public override void SetDestination(Vector3 destination, Vector3 LookRotation)
+    {
+        base.SetDestination(destination, LookRotation);
+    }
+
     private void AbortAttack()
     {
         //Debug.Log("aborted Attack");

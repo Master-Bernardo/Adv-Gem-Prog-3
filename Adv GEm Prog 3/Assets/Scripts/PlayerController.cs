@@ -243,18 +243,31 @@ public class PlayerController : MonoBehaviour {
     //we can draw a line, if our selected unit is not moving, it will face in the direction of that line, will be made better in the future - TW style positioning
     private void HandleLongRmbUp()
     {
-        //Debug.Log("long -> positioning");
-        Vector3 rmbPosition2 = Input.mousePosition;
+        //sende die einheit dahin und rotiere sie in die richtung in die wir ziehen
+        Vector3 rmbPosition1WorldSpace = Vector3.zero;
+        Ray ray = cam.ScreenPointToRay(rmbPosition1);  // this is our mouse position ray
+        RaycastHit hit;
 
-        Vector3 direction = new Vector3(rmbPosition2.x - rmbPosition1.x, 0f, rmbPosition2.y - rmbPosition1.y);
-        foreach (UnitMovement uMov in selectedUnits)
+        if (Physics.Raycast(ray, out hit))
         {
-            if (uMov.playerID == playerID)
+            rmbPosition1WorldSpace = hit.point;
+
+
+            //Debug.Log("long -> positioning");
+            Vector3 rmbPosition2 = Input.mousePosition;
+
+            Vector3 direction = new Vector3(rmbPosition2.x - rmbPosition1.x, 0f, rmbPosition2.y - rmbPosition1.y);
+            foreach (UnitMovement uMov in selectedUnits)
             {
-                uMov.FaceDirection(direction);
+                if (uMov.playerID == playerID)
+                {
+                    //uMov.FaceDirection(direction);
+                    uMov.SetDestination(rmbPosition1WorldSpace, direction);
+                    //Debug.Log(rmbPosition1 + " " + rmbPosition2);
+                }
             }
+            //Debug.Log(direction);
         }
-        //Debug.Log(direction);
     }
 
     public void DeleteUnit(UnitMovement unit)
