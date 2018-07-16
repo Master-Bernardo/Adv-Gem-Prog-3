@@ -43,6 +43,9 @@ public class UnitFighter : UnitMovement
 
     private bool inRange = false; //is our missile unit in range?
 
+    public bool followEnemyMissile = false;
+    public bool enemyWasInRange = false; //sorgt dafür das wir zum gegner hingehen falls, wir grade den Angraffsbefehl gegeben haben, wir gehen aber nicht zum gegner hin, wenn dieser flieht, dann brechen wir angriff ab
+
 
 
     private Quaternion wishedWeaponRotation = Quaternion.identity;  //we always rotate on update to this rotation
@@ -64,6 +67,8 @@ public class UnitFighter : UnitMovement
     public float meleeDefenseSkill = 5f;
 
     bool meleeAttackDestinationSet = false; //so we dont call setDestination every frame
+
+    protected bool followEnemyMelee = true;
     #endregion
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
@@ -172,6 +177,7 @@ public class UnitFighter : UnitMovement
 
         //set this for our missileUnits
         missileAttackPrepared = false;
+        enemyWasInRange = false;
         nextMissileAttackTime = Time.time + Random.Range(0f, missileAttackIntervall);
 
         //set this for meleeUnits
@@ -258,7 +264,7 @@ public class UnitFighter : UnitMovement
             nextMissileAttackTime = Time.time + missileAttackIntervall;
         }
 
-        if (inRange) { 
+        if (inRange) {
             //set Weapon rotation
             currentSelectedMissileWeapon.transform.localRotation = Quaternion.RotateTowards(currentSelectedMissileWeapon.transform.localRotation, wishedWeaponRotation, currentSelectedMissileWeapon.aimSpeed);
             //turn to target + predicted offset
@@ -320,6 +326,7 @@ public class UnitFighter : UnitMovement
         // wenn wir im Range sind
         if (inRange)
         {
+            enemyWasInRange = true;
             agent.isStopped = true;
             if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
             {
@@ -362,9 +369,13 @@ public class UnitFighter : UnitMovement
                                                                                    //TurnToDestination(currentAttackingTargetTransform.position);
 
             }
-            else
+            else if (!enemyWasInRange || followEnemyMissile)
             {
                 SetDestinationAttack(currentAttackingTargetTransform.position);
+            }else if(enemyWasInRange || !followEnemyMissile)
+            {
+                AbortAttack();
+                Debug.Log("abortAttack");
             }
             //hasCheckedDirectFire = false;
             missileAttackPrepared = false; //only in range
@@ -564,6 +575,8 @@ public class UnitFighter : UnitMovement
     public override void SetDestination(Vector3 destination, Vector3 LookRotation)
     {
         base.SetDestination(destination, LookRotation);
+        AbortAttack();
+        agent.isStopped = false;
     }
 
     private void AbortAttack()
@@ -571,7 +584,8 @@ public class UnitFighter : UnitMovement
         //Debug.Log("aborted Attack");
         if (state == State.Attacking)
         {
-            state = State.Idle; 
+            state = State.Idle;
+            currentAttackingTarget = null;
         }
 
         if (weapons[selectedWeapon] is MissileWeapon)
