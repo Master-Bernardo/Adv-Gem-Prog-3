@@ -6,7 +6,8 @@ public class PlayerController : MonoBehaviour {
 
 
     public Camera cam;
-    private HashSet<UnitMovement> selectedUnits;
+    //private HashSet<UnitMovement> selectedUnits;
+    private SelectionGroup selectionGroup;
     private int playerID = 1;
    
 
@@ -16,13 +17,13 @@ public class PlayerController : MonoBehaviour {
     private float timeLmbDown = 0f;
     private float timeRmbDown = 0f;
 
-    bool doubleRmbClick = false; 
+    bool doubleRmbClick = false;
 
     private void Awake()
     {
-        selectedUnits = new HashSet<UnitMovement>();
+        selectionGroup = new SelectionGroup();
     }
-  
+
     void Update()
     {
         
@@ -86,49 +87,37 @@ public class PlayerController : MonoBehaviour {
             UnitMovement hittedUnit = hit.collider.gameObject.GetComponent<UnitMovement>();
             if (!Input.GetKey(KeyCode.LeftShift))
             {
-                if (selectedUnits.Count > 0)
+                if (selectionGroup.Count() > 0)
                 {
-                    foreach (UnitMovement uMov in selectedUnits)
-                    {
-                        uMov.Deselect();
-                    }
-                    selectedUnits.Clear();
+                    selectionGroup.DeselectAll();
                 }
-                selectedUnits.Add(hittedUnit);
+                selectionGroup.Add(hittedUnit);
             }
             else
             {
-                if (!selectedUnits.Contains(hittedUnit))
+                if (!selectionGroup.Contains(hittedUnit))
                 {
-                    selectedUnits.Add(hittedUnit);
+                    selectionGroup.Add(hittedUnit);
                 }
                 else
                 {
-                    selectedUnits.Remove(hittedUnit);
+                    selectionGroup.Remove(hittedUnit);
                     hittedUnit.Deselect();
-
                 }
 
             }
 
 
-            foreach (UnitMovement uMov in selectedUnits)
-            {
-                uMov.Select();
-            }
+            selectionGroup.SelectAll();
 
         }
         else
         {
             if (!Input.GetKey(KeyCode.LeftShift))
             {
-                if (selectedUnits.Count > 0)
+                if (selectionGroup.Count() > 0)
                 {
-                    foreach (UnitMovement uMov in selectedUnits)
-                    {
-                        uMov.Deselect();
-                    }
-                    selectedUnits.Clear();
+                    selectionGroup.DeselectAll();
                 }
             }
 
@@ -150,9 +139,9 @@ public class PlayerController : MonoBehaviour {
             if (hit.collider.gameObject.GetComponent<UnitMovement>().getPlayerID() == 1)
             {
                 //Debug.Log("hittetMyUnit");
-                if (selectedUnits.Count != 0)
+                if (selectionGroup.Count() != 0)
                 {
-                    foreach (UnitMovement uMov in selectedUnits)
+                    foreach (UnitMovement uMov in selectionGroup.GetSet())
                     {
                         if (uMov.playerID == playerID)
                         {
@@ -167,9 +156,9 @@ public class PlayerController : MonoBehaviour {
             else if (hit.collider.gameObject.GetComponent<UnitMovement>().getPlayerID() == 2)
             {
                 //Debug.Log("hittetEnemyUnit");
-                if (selectedUnits.Count != 0)
+                if (selectionGroup.Count() != 0)
                 {
-                    foreach (UnitMovement uMov in selectedUnits)
+                    foreach (UnitMovement uMov in selectionGroup.GetSet())
                     {
                         if (uMov.playerID == playerID)
                         {
@@ -181,9 +170,9 @@ public class PlayerController : MonoBehaviour {
         }
         else if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "Environment")
         {
-            if (selectedUnits.Count != 0)
+            if (selectionGroup.Count() != 0)
             {
-                foreach (UnitMovement uMov in selectedUnits)
+                foreach (UnitMovement uMov in selectionGroup.GetSet())
                 {
                     //if (uMov.playerID == playerID) TODO wieder einkommentieren
                     //{
@@ -229,18 +218,18 @@ public class PlayerController : MonoBehaviour {
                 if (isInRectangle)
                 {
                     unit.Select();
-                    selectedUnits.Add(unit);
+                    selectionGroup.Add(unit);
                 }
                 else
                 {
                     transform.gameObject.GetComponent<UnitMovement>().Deselect();
-                    selectedUnits.Remove(unit);
+                    selectionGroup.Remove(unit);
                 }
             }
         }
     }
 
-    //we can draw a line, if our selected unit is not moving, it will face in the direction of that line, will be made better in the future - TW style positioning
+    //we can draw a line, units will go to the first point , and when arrived will turn to the second point
     private void HandleLongRmbUp()
     {
         //sende die einheit dahin und rotiere sie in die richtung in die wir ziehen
@@ -257,7 +246,7 @@ public class PlayerController : MonoBehaviour {
             Vector3 rmbPosition2 = Input.mousePosition;
 
             Vector3 direction = new Vector3(rmbPosition2.x - rmbPosition1.x, 0f, rmbPosition2.y - rmbPosition1.y);
-            foreach (UnitMovement uMov in selectedUnits)
+            foreach (UnitMovement uMov in selectionGroup.GetSet())
             {
                 if (uMov.playerID == playerID)
                 {
@@ -272,7 +261,7 @@ public class PlayerController : MonoBehaviour {
 
     public void DeleteUnit(UnitMovement unit)
     {
-        if (selectedUnits.Contains(unit)) selectedUnits.Remove(unit);
+        if (selectionGroup.Contains(unit)) selectionGroup.Remove(unit);
     }
 
 
