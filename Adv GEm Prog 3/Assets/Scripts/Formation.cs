@@ -22,6 +22,7 @@ public class Formation: MonoBehaviour{
      */
 
     private List<FormationPosition> positions; // the positions ale alwys relative to the middle od the formation
+    private List<GameObject> triangles;
 
     public GameObject PlaceholderUnitPrefab; // just for testing
 
@@ -53,6 +54,7 @@ public class Formation: MonoBehaviour{
         transform.rotation = Quaternion.LookRotation(formationLookDirection);
 
         positions = new List<FormationPosition>();
+        triangles = new List<GameObject>();
 
         //fill our list: 
 
@@ -101,7 +103,7 @@ public class Formation: MonoBehaviour{
         }
 
         InstantiateTriangles();
-
+        StartCoroutine("DestroyTriangles");
     }
 
     public void InstantiateTriangles()
@@ -110,6 +112,7 @@ public class Formation: MonoBehaviour{
         {
             GameObject.Destroy(child.gameObject);
         }
+        triangles.Clear();
 
 
         foreach (FormationPosition formationWorldPosition in GetTheWorldPositions())
@@ -117,6 +120,16 @@ public class Formation: MonoBehaviour{
             //GameObject triangle = Instantiate(PlaceholderUnitPrefab, transform.position + formationPosition.position, Quaternion.LookRotation(formationPosition.lookDirection));
             GameObject triangle = Instantiate(PlaceholderUnitPrefab, formationWorldPosition.position, Quaternion.LookRotation(formationWorldPosition.lookDirection));
             triangle.transform.SetParent(transform);
+            triangles.Add(triangle);
+        }
+    }
+
+    private IEnumerator DestroyTriangles()
+    {
+        yield return new WaitForSeconds(2f);
+        foreach( GameObject triangle in triangles)
+        {
+            Destroy(triangle);
         }
     }
   

@@ -139,7 +139,7 @@ public class PlayerController : MonoBehaviour {
         if (Physics.Raycast(ray, out hit) && hit.collider.gameObject.tag == "Unit")
         {
             //if i hit my own unit, go there
-            if (hit.collider.gameObject.GetComponent<UnitMovement>().getPlayerID() == 1)
+            if (hit.collider.gameObject.GetComponent<UnitMovement>().getPlayerID() == 1)              
             {
                 //Debug.Log("hittetMyUnit");
                 if (selectionGroup.Count() != 0)
