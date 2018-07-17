@@ -1143,7 +1143,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1250859360701376}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.1, y: 0, z: -2.92}
+  m_LocalPosition: {x: 53, y: 0, z: -4.81}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4430729371475508}
@@ -2323,6 +2323,7 @@ MonoBehaviour:
   normalSpeed: 3.5
   run: 0
   animator: {fileID: 95829556058114324}
+  state: 0
   weapons:
   - {fileID: 114941579049687556}
   - {fileID: 114292373803483348}
@@ -2341,6 +2342,8 @@ MonoBehaviour:
   missileAttackIntervall: 0.5
   meleeAttackSkill: 5
   meleeDefenseSkill: 39.5
+  attackAtWill: 1
+  attackAtWillDistance: 10
   steadfast: 0
 --- !u!114 &114617139190915890
 MonoBehaviour:
@@ -2353,7 +2356,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c18397d3b09cdac469dfb7143069ad2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 5
+  damage: 50
   armorPiercing: 0
   model: {fileID: 0}
   oneHanded: 1

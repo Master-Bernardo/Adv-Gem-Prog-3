@@ -7,6 +7,7 @@ public class UnitFighter : UnitMovement
 {
     [Header("Fighter Unit ")]
 
+    [SerializeField]
     protected State state;
 
     //attackingEnemy
@@ -69,6 +70,17 @@ public class UnitFighter : UnitMovement
     bool meleeAttackDestinationSet = false; //so we dont call setDestination every frame
 
     protected bool followEnemyMelee = true;
+
+    //for automatic attack on sight
+    [SerializeField]
+    protected bool attackAtWill;//like fire at will but for melee
+    [SerializeField]
+    protected float attackAtWillDistance = 20f;
+    [SerializeField]
+    protected bool didWeSendHimAwayFromAFight = false; //is true if the unit is fighting and we give it another movement order, than it waits to reach the destination before it turns false again
+    //only if its false - atackAtWill will work
+    //so true if state == attacking - turns false when state == idle and reached location
+
     #endregion
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
@@ -106,20 +118,24 @@ public class UnitFighter : UnitMovement
     protected override void Start()
     {
         base.Start();
-        drawWeapon(2); //TODO nur melee funkt erstmal
+        drawWeapon(0); //TODO nur melee funkt erstmal
     }
 
     protected override void Update()
     {
         base.Update();
-
         if (state == State.Attacking)
         {
             //checkIfTarget is Dead
             if (currentAttackingTarget == null)
             {
-                //now search for another target or change state to idle
-                state = State.Idle;
+                //search for another enemy, if noone there - stop attacking
+                if (!AttackNearestEnemyMissile() && !AttackNearestEnemyMelee())
+                {
+                    state = State.Idle;
+                    agent.ResetPath();
+                }
+
             }
             else
             {
@@ -137,16 +153,15 @@ public class UnitFighter : UnitMovement
         }else if(state == State.Idle)
         {
             animator.SetBool("isAiming", false);
-            
-            if(currentSelectedMissileWeapon!=null) //die ist nur != null wenn diese selected ist
+
+            //checkIfWeReachedOurDestination,then attackAtWillIs allowed
+            if (!agent.pathPending && !agent.hasPath) didWeSendHimAwayFromAFight = false;
+
             //check if we can shoot at smbody
-            if (fireAtWill && !agent.pathPending && !agent.hasPath) {  //also nur wenn er stillsteht
-                UnitMovement nearestEnemy = GetNearestTargetInRange(currentSelectedMissileWeapon.missileRange);
-                if (nearestEnemy != null) Attack(nearestEnemy);
-            }
+            AttackNearestEnemyMissile();
 
             //check if we can attack somebody near us
-
+            AttackNearestEnemyMelee();
         }
 
         #region automaticlyLoadWhileStanding
@@ -178,6 +193,43 @@ public class UnitFighter : UnitMovement
     }
 
     #region Checks if we can shhot or hit somebody near us
+    private bool AttackNearestEnemyMissile()
+    {
+        
+        if (currentSelectedMissileWeapon != null)
+        { //die ist nur != null wenn diese selected ist
+            if (fireAtWill && !agent.pathPending && !agent.hasPath)
+            {  //also nur wenn er stillsteht
+                UnitMovement nearestEnemy = GetNearestTargetInRange(currentSelectedMissileWeapon.missileRange);
+                if (nearestEnemy != null)
+                {
+                    Attack(nearestEnemy);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool AttackNearestEnemyMelee()
+    {
+        if (currentSelectedMeleeWeapon != null)
+        { //die ist nur != null wenn diese selected ist
+            if (attackAtWill && !didWeSendHimAwayFromAFight)
+            {  //also nur wenn er stillsteht
+                UnitMovement nearestEnemy = GetNearestTargetInRange(attackAtWillDistance);
+                if (nearestEnemy != null)
+                {
+                    Attack(nearestEnemy);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+
     private UnitMovement GetNearestTargetInRange(float range)
     {
         UnitMovement nearestTarget = null;
@@ -260,7 +312,7 @@ public class UnitFighter : UnitMovement
         //Debug.Log("I attacked Melee"); //later damage will be based on skill
         currentAttackingTarget.HandleAttack(damageType, damage);
         animator.SetTrigger("Attack");
-        Debug.Log("Attack");
+        //Debug.Log("Attack");
     }
         
     public override void HandleAttack(DamageType damageType, int damageAmount)
@@ -269,12 +321,12 @@ public class UnitFighter : UnitMovement
         if (Random.Range(0f, 100f) > 95 - meleeDefenseSkill / 1.2f)
         {
             //defend, play defend animation
-            Debug.Log("Defend");
+            //Debug.Log("Defend");
             animator.SetTrigger("Defend");
         }
         else { 
             GetDamage(damageType, damageAmount);
-            Debug.Log("getDamage");
+            //Debug.Log("getDamage");
             //animator.SetTrigger("getDamage");
         }
     }
@@ -372,7 +424,8 @@ public class UnitFighter : UnitMovement
         if (inRange)
         {
             enemyWasInRange = true;
-            agent.isStopped = true;
+            //agent.isStopped = true; old way, better, reset the path
+            agent.ResetPath();
             if (weapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable) //extraabfrage loadable Weapons können nicht beim laden zielen, bogen schon
             {
                 if (weapon.weaponReadyToShoot)
@@ -614,6 +667,7 @@ public class UnitFighter : UnitMovement
     private void SetDestinationAttack(Vector3 destination)  // automatic set destination of attack rmb was licked
     {
         base.SetDestination(destination);
+        didWeSendHimAwayFromAFight = true; //for attackAtWill
         agent.isStopped = false;
     }
 
@@ -621,6 +675,7 @@ public class UnitFighter : UnitMovement
     {
         base.SetDestination(destination, LookRotation);
         AbortAttack();
+        didWeSendHimAwayFromAFight = true; //for attackAtWill
         agent.isStopped = false;
     }
 
