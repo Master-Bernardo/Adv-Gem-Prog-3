@@ -44,8 +44,8 @@ public class UnitMovement : MonoBehaviour {
         if (agent.velocity.magnitude > 0.1)
         {
             moving = true;
-            manualTurning = false;
-            agent.updateRotation = true;
+            //manualTurning = false;
+            //agent.updateRotation = true;
             animator.SetBool("isRunning", true);
         }
         else
@@ -58,9 +58,9 @@ public class UnitMovement : MonoBehaviour {
         {
             healthbar.UpdateHealthBar(currentHealth / maxHealth);
         }
-
         if (manualTurning)  //turns in the desired direction depending on angularSpeed
         {
+            //Debug.Log("ManualTurning");
             transform.rotation = Quaternion.Slerp(transform.rotation, wishRotation, agent.angularSpeed*Time.deltaTime/30); ///10
             //Debug.Log(wishRotation.eulerAngles);
             if (transform.rotation == wishRotation)
@@ -70,7 +70,7 @@ public class UnitMovement : MonoBehaviour {
                 agent.updateRotation = true;
             }
         }
-
+        //Debug.Log(rotateOnArrival);
         if (rotateOnArrival)
         {
             // if arrived
@@ -101,7 +101,7 @@ public class UnitMovement : MonoBehaviour {
         if (run) agent.speed = runSpeed;
         else agent.speed = normalSpeed;
 
-        rotateOnArrival = false;
+        //rotateOnArrival = false;
         agent.SetDestination(destination);
     }
 
@@ -139,11 +139,12 @@ public class UnitMovement : MonoBehaviour {
 
     public void FaceDirection(Vector3 direction)
     {
-        if (!moving) { 
-            direction.y = 0;
-            wishRotation = Quaternion.LookRotation(direction);
-            manualTurning = true;
-        }
+        //if (!moving) { 
+       // Debug.Log("face Direction");
+        direction.y = 0;
+        wishRotation = Quaternion.LookRotation(direction);
+        manualTurning = true;
+        //}
     }
 
     //we get a collection of waypoints the last one in the collection is the end goal - in progress
