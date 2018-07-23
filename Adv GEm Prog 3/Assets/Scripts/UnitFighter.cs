@@ -88,6 +88,10 @@ public class UnitFighter : UnitMovement
     protected Vector3 finalDestinationLookDirection = Vector3.zero;
     #endregion
 
+    #region performace optimisation
+    private float nextNearEnemyCheckTime = 0f;
+    #endregion
+
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
 
     
@@ -124,11 +128,13 @@ public class UnitFighter : UnitMovement
     {
         base.Start();
         drawWeapon(0); //TODO nur melee funkt erstmal
+        nextNearEnemyCheckTime = Time.time + Random.Range(0f, 1f);
     }
 
     protected override void Update()
     {
         base.Update();
+
         if (state == State.Attacking)
         {
             //checkIfTarget is Dead
@@ -170,13 +176,15 @@ public class UnitFighter : UnitMovement
 
             //checkIfWeReachedOurDestination,then attackAtWillIs allowed
             if (!agent.pathPending && !agent.hasPath) didWeSendHimAwayFromAFight = false;
-
-            //check if we can shoot at smbody
-            AttackNearestEnemyMissile();
-
-            //check if we can attack somebody near us
-            AttackNearestEnemyMelee();
+ 
         }
+
+        if (nextNearEnemyCheckTime <= Time.time)
+        {
+            CheckNearestEnemy(); //every 60 seconda we make this check
+            nextNearEnemyCheckTime = Time.time + 1f;
+        }
+        
 
         #region automaticlyLoadWhileStanding
         if (weapons[selectedWeapon] is MissileWeapon && currentSelectedMissileWeapon.missileWeaponType == MissileWeapon.MissileWeaponType.Loadable)
@@ -207,9 +215,18 @@ public class UnitFighter : UnitMovement
     }
 
     #region Checks if we can shhot or hit somebody near us
+
+    private void CheckNearestEnemy()
+    {
+        //check if we can shoot at smbody
+        AttackNearestEnemyMissile();
+
+        //check if we can attack somebody near us
+        AttackNearestEnemyMelee();
+    }
+
     private bool AttackNearestEnemyMissile()
     {
-        
         if (currentSelectedMissileWeapon != null)
         { //die ist nur != null wenn diese selected ist
             if (fireAtWill && !didWeSendHimAwayFromAFight)//!agent.pathPending && !agent.hasPath)
