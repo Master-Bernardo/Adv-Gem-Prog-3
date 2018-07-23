@@ -1427,6 +1427,7 @@ Transform:
   - {fileID: 142507052}
   - {fileID: 1893966724}
   - {fileID: 1499091745}
+  - {fileID: 1234549743}
   - {fileID: 1764396217}
   - {fileID: 1858904941}
   - {fileID: 914773863}
@@ -1440,7 +1441,6 @@ Transform:
   - {fileID: 1687688798}
   - {fileID: 126831629}
   - {fileID: 271756713}
-  - {fileID: 1234549743}
   - {fileID: 1426897475}
   - {fileID: 313782558}
   - {fileID: 1615833483}
@@ -3932,7 +3932,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &175891805
 Transform:
   m_ObjectHideFlags: 0
@@ -6994,6 +6994,12 @@ Prefab:
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 12744bc13c74048408c17556b3ee736d, type: 2}
   m_IsPrefabParent: 0
+--- !u!114 &286275703 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114440056997806324, guid: 00a1059e67e80474cb7266a1ed41eaec,
+    type: 2}
+  m_PrefabInternal: {fileID: 656593313}
+  m_Script: {fileID: 11500000, guid: 5c78bd63a3a12ca48b426498763db1a6, type: 3}
 --- !u!1001 &288574416
 Prefab:
   m_ObjectHideFlags: 0
@@ -7475,7 +7481,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &310894625
 Transform:
   m_ObjectHideFlags: 0
@@ -8321,7 +8327,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 900e53dd850c9cc4281be6fa21bdfea5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.8719998
+      value: 0.703
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 900e53dd850c9cc4281be6fa21bdfea5, type: 3}
       propertyPath: m_LocalPosition.z
@@ -14822,6 +14828,16 @@ Prefab:
       propertyPath: m_RootOrder
       value: 25
       objectReference: {fileID: 0}
+    - target: {fileID: 114316777194141776, guid: 00a1059e67e80474cb7266a1ed41eaec,
+        type: 2}
+      propertyPath: weapons.Array.data[0]
+      value: 
+      objectReference: {fileID: 994313851}
+    - target: {fileID: 114316777194141776, guid: 00a1059e67e80474cb7266a1ed41eaec,
+        type: 2}
+      propertyPath: weapons.Array.data[2]
+      value: 
+      objectReference: {fileID: 286275703}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 00a1059e67e80474cb7266a1ed41eaec, type: 2}
   m_IsPrefabParent: 0
@@ -23222,6 +23238,12 @@ Transform:
   m_PrefabParentObject: {fileID: 4179299451052624, guid: 12744bc13c74048408c17556b3ee736d,
     type: 2}
   m_PrefabInternal: {fileID: 618223979}
+--- !u!114 &994313851 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114198042968397680, guid: 00a1059e67e80474cb7266a1ed41eaec,
+    type: 2}
+  m_PrefabInternal: {fileID: 656593313}
+  m_Script: {fileID: 11500000, guid: c18397d3b09cdac469dfb7143069ad2b, type: 3}
 --- !u!1001 &997431658
 Prefab:
   m_ObjectHideFlags: 0
@@ -38035,7 +38057,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1639049683
 Transform:
   m_ObjectHideFlags: 0

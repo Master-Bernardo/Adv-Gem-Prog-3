@@ -76,11 +76,16 @@ public class UnitFighter : UnitMovement
     protected bool attackAtWill;//like fire at will but for melee
     [SerializeField]
     protected float attackAtWillDistance = 20f;
-    [SerializeField]
-    protected bool didWeSendHimAwayFromAFight = false; //is true if the unit is fighting and we give it another movement order, than it waits to reach the destination before it turns false again
     //only if its false - atackAtWill will work
     //so true if state == attacking - turns false when state == idle and reached location
 
+    #endregion
+
+    #region for unit movement
+    [SerializeField]
+    protected bool didWeSendHimAwayFromAFight = false; //is true if the unit is fighting and we give it another movement order, than it waits to reach the destination before it turns false again
+    protected Vector3 finalDestination = Vector3.zero;  // is always set by the setDestination function, after we get into a fight and a fight is over, we automaticly go to this destination again
+    protected Vector3 finalDestinationLookDirection = Vector3.zero;
     #endregion
 
     public bool steadfast = false; //for later, only some units will have this, can be disabled in game, prevents units from fleeing
@@ -134,6 +139,15 @@ public class UnitFighter : UnitMovement
                 {
                     state = State.Idle;
                     agent.ResetPath();
+                    if (finalDestination != Vector3.zero) {
+                        if (finalDestinationLookDirection != Vector3.zero) {
+                            SetDestination(finalDestination, finalDestinationLookDirection);
+                         }
+                        else
+                        {
+                            agent.SetDestination(finalDestination);
+                        }
+                     }
                 }
 
             }
@@ -198,7 +212,7 @@ public class UnitFighter : UnitMovement
         
         if (currentSelectedMissileWeapon != null)
         { //die ist nur != null wenn diese selected ist
-            if (fireAtWill && !agent.pathPending && !agent.hasPath)
+            if (fireAtWill && !didWeSendHimAwayFromAFight)//!agent.pathPending && !agent.hasPath)
             {  //also nur wenn er stillsteht
                 UnitMovement nearestEnemy = GetNearestTargetInRange(currentSelectedMissileWeapon.missileRange);
                 if (nearestEnemy != null)
@@ -473,7 +487,7 @@ public class UnitFighter : UnitMovement
             }else if(enemyWasInRange || !followEnemyMissile)
             {
                 AbortAttack();
-                Debug.Log("abortAttack");
+                //Debug.Log("abortAttack");
             }
             //hasCheckedDirectFire = false;
             missileAttackPrepared = false; //only in range
@@ -657,7 +671,7 @@ public class UnitFighter : UnitMovement
     #endregion
 
 
-    public override void SetDestination(Vector3 destination)  //set destination with rmb
+    public override void SetDestination(Vector3 destination)  //set destination with rmb - is not used anymore with new formation system, we always use the rotation thing
     {
         base.SetDestination(destination);
         AbortAttack();
@@ -667,15 +681,17 @@ public class UnitFighter : UnitMovement
     private void SetDestinationAttack(Vector3 destination)  // automatic set destination of attack rmb was licked
     {
         base.SetDestination(destination);
-        didWeSendHimAwayFromAFight = true; //for attackAtWill
+        if (state == State.Attacking) didWeSendHimAwayFromAFight = true; //for attackAtWill
         agent.isStopped = false;
     }
 
     public override void SetDestination(Vector3 destination, Vector3 LookRotation)
     {
         base.SetDestination(destination, LookRotation);
+        finalDestination = destination;
+        finalDestinationLookDirection = LookRotation;
+        if(state==State.Attacking) didWeSendHimAwayFromAFight = true; //for attackAtWill
         AbortAttack();
-        didWeSendHimAwayFromAFight = true; //for attackAtWill
         agent.isStopped = false;
     }
 
