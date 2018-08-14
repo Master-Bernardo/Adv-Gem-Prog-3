@@ -129,6 +129,7 @@ public class UnitFighter : UnitMovement
         base.Start();
         drawWeapon(0); //TODO nur melee funkt erstmal
         nextNearEnemyCheckTime = Time.time + Random.Range(0f, 1f);
+        agent.autoTraverseOffMeshLink = true //false; //for custom ladder and jump behaviour, true for now, maybe turn it only false when we enter a ladder trigger, so we can still jump 
     }
 
     protected override void Update()
