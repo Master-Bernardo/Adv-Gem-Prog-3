@@ -6,7 +6,6 @@ public class PlayerController : MonoBehaviour {
 
 
     public Camera cam;
-    //private HashSet<UnitMovement> selectedUnits;
     private SelectionGroup selectionGroup;
     private int playerID = 1;
    

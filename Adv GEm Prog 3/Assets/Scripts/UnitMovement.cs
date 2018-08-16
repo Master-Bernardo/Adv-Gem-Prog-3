@@ -41,6 +41,7 @@ public class UnitMovement : MonoBehaviour {
 
     protected virtual void Update()
     {
+        
         if (agent.velocity.magnitude > 0.1)
         {
             moving = true;
